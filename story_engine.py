@@ -94,6 +94,12 @@ def check_state_transition(story):
     
     state_data = json.loads(story.state_data)
     
+    # Check if next_transition_time exists
+    if 'next_transition_time' not in state_data:
+        # Initialize state data if missing
+        initialize_story_state(story)
+        return False
+    
     # Check if it's time to transition
     next_transition_time = datetime.fromisoformat(state_data['next_transition_time'])
     
@@ -101,7 +107,7 @@ def check_state_transition(story):
         return True
     
     # Check if user interaction threshold is met (can trigger early transition)
-    if state_data['user_interaction_count'] >= 10:
+    if state_data.get('user_interaction_count', 0) >= 10:
         return True
     
     return False

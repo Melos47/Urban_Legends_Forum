@@ -206,12 +206,12 @@ main {
 }
 
 .story-header {
-    display: flex;
+    display: flex !important;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 15px;
+    flex-wrap: nowrap;
+    gap: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #333;
 }
@@ -221,6 +221,7 @@ main {
     align-items: center;
     gap: 15px;
     flex: 1;
+    min-width: 0;
 }
 
 .ai-persona {
@@ -518,6 +519,8 @@ footer {
 }
 
 .follow-btn {
+    display: inline-block !important;
+    visibility: visible !important;
     background: var(--darker-bg);
     border: 2px solid var(--horror-green);
     color: var(--horror-green);
@@ -530,6 +533,7 @@ footer {
     font-weight: bold;
     white-space: nowrap;
     box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+    min-width: 100px;
 }
 
 .follow-btn:hover {

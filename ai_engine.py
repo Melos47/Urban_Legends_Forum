@@ -185,6 +185,71 @@ def generate_evidence_audio(text_content):
 
 def generate_ai_response(story, user_comment):
     """Generate AI chatbot response to user comment"""
+    
+    # Check if LM Studio local server is configured
+    lm_studio_url = os.getenv('LM_STUDIO_URL', 'http://localhost:1234/v1')
+    use_lm_studio = os.getenv('USE_LM_STUDIO', 'true').lower() == 'true'
+    
+    if use_lm_studio:
+        print(f"[generate_ai_response] 使用 LM Studio 本地服务器: {lm_studio_url}")
+        try:
+            from openai import OpenAI
+            # LM Studio 兼容 OpenAI API
+            local_client = OpenAI(base_url=lm_studio_url, api_key="lm-studio")
+            
+            prompt = f"""你是故事"{story.title}"的讲述者（{story.ai_persona}）。
+
+故事摘要：
+{story.content[:300]}...
+
+用户评论：
+{user_comment.content}
+
+作为故事的讲述者，请用1-3句话回复用户的评论。你可以：
+1. 透露更多细节或线索
+2. 表达恐惧或担忧
+3. 提出新的疑问
+4. 描述后续发展
+
+保持神秘感和紧张氛围，不要完全揭示真相。请直接回复，不要加"【楼主回复】"前缀。"""
+
+            response = local_client.chat.completions.create(
+                model="local-model",  # LM Studio 会使用当前加载的模型
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.8,
+                max_tokens=200
+            )
+            
+            ai_reply = response.choices[0].message.content.strip()
+            print(f"[generate_ai_response] LM Studio 回复: {ai_reply[:50]}...")
+            return f"【楼主回复】{ai_reply}"
+            
+        except Exception as e:
+            print(f"[generate_ai_response] LM Studio 调用失败: {e}")
+            print("[generate_ai_response] 回退到模板回复")
+    
+    # Check if cloud API keys are configured
+    openai_key = os.getenv('OPENAI_API_KEY', '')
+    anthropic_key = os.getenv('ANTHROPIC_API_KEY', '')
+    
+    # If no valid API keys, use template responses
+    if (not openai_key or openai_key == 'your-openai-api-key-here') and \
+       (not anthropic_key or anthropic_key == 'your-anthropic-api-key-here'):
+        print("[generate_ai_response] 使用模板回复（API密钥未配置）")
+        
+        # Template responses based on story location
+        responses = [
+            f"【楼主回复】谢谢关心！刚才又去了一趟，情况越来越诡异了...我发现了一些新线索，但不敢轻举妄动。",
+            f"【楼主回复】各位，我现在有点害怕...刚才发生的事情完全超出我的理解。我会继续更新的，大家帮我分析一下。",
+            f"【楼主回复】更新来了！今天又有新发现，这件事比我想象的要复杂得多。有没有懂行的朋友给点建议？",
+            f"【楼主回复】感谢大家的支持！说实话我现在很纠结要不要继续调查下去...但好奇心驱使我想弄清楚真相。",
+            f"【楼主回复】刚才又去现场看了，确实很不对劲。我拍了几张照片，但手机总是莫名其妙地卡顿...诡异。"
+        ]
+        
+        # Return random response
+        import random
+        return random.choice(responses)
+    
     try:
         # Create context-aware response
         prompt = f"""你是故事"{story.title}"的讲述者（{story.ai_persona}）。
@@ -223,7 +288,14 @@ def generate_ai_response(story, user_comment):
             
     except Exception as e:
         print(f"Error generating AI response: {e}")
-        return None
+        # Fallback to template response
+        import random
+        responses = [
+            f"【楼主回复】谢谢关心！情况有新进展了...",
+            f"【楼主回复】各位，事情越来越诡异了...",
+            f"【楼主回复】更新：刚才又发现了新线索！"
+        ]
+        return random.choice(responses)
 
 def should_generate_new_story():
     """Determine if it's time to generate a new story"""

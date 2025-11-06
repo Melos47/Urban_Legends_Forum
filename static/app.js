@@ -324,13 +324,23 @@ async function viewStory(storyId) {
         
         console.log('Follow status:', followStatus);
 
-        detailContainer.innerHTML = `
+        // Always show button, just disable if not logged in
+        const followButtonHtml = authToken 
+            ? `<button class="follow-btn ${followStatus.followed ? 'followed' : ''}" data-story-id="${story.id}">${followStatus.followed ? '✓ 已关注' : '+ 关注'}</button>`
+            : `<button class="follow-btn" disabled style="opacity: 0.5; cursor: not-allowed;">登录后关注</button>`;
+        
+        // Debug info
+        const debugInfo = `<div style="background: yellow; color: black; padding: 10px; margin-bottom: 10px;">
+            调试信息: authToken=${authToken ? 'YES' : 'NO'}, currentUser=${currentUser ? currentUser.username : 'NO'}, followed=${followStatus.followed}
+        </div>`;
+        
+        detailContainer.innerHTML = debugInfo + `
             <div class="story-header">
                 <div class="story-header-left">
                     <span class="ai-persona">${story.ai_persona || '📝 匿名'}</span>
                     <span class="story-state">${getStateDisplay(story.current_state)}</span>
                 </div>
-                ${currentUser ? `<button class="follow-btn ${followStatus.followed ? 'followed' : ''}" data-story-id="${story.id}">${followStatus.followed ? '✓ 已关注' : '+ 关注'}</button>` : '<span style="color: #666; font-size: 0.9em;">请登录后关注</span>'}
+                ${followButtonHtml}
             </div>
             
             <h2 class="story-title">${story.title}</h2>
@@ -389,8 +399,10 @@ async function viewStory(storyId) {
         
         // Add event listeners after content is loaded
         const followBtn = detailContainer.querySelector('.follow-btn');
-        if (followBtn) {
+        console.log('Follow button found:', followBtn);
+        if (followBtn && !followBtn.disabled) {
             followBtn.addEventListener('click', function() {
+                console.log('Follow button clicked!');
                 followStory(story.id, this);
             });
         }

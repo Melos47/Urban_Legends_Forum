@@ -232,10 +232,11 @@ def add_comment(story_id):
     # Create notification for user's own comment (for AI response)
     create_notifications_for_followers(story, comment)
 
-    # 启动后台线程，1分钟后生成AI回复
+    # 启动后台线程，5秒后生成AI回复（测试用）
+    print(f"[add_comment] 启动后台线程，5秒后生成AI回复...")
     threading.Thread(
         target=delayed_ai_response,
-        args=(story_id, comment.id, 60),  # 60秒延迟
+        args=(story_id, comment.id, 5),  # 5秒延迟（测试）
         daemon=True
     ).start()
     
@@ -332,17 +333,22 @@ def create_notifications_for_followers(story, comment, ai_response=False):
 
 def delayed_ai_response(story_id, comment_id, delay_seconds=60):
     """延迟生成AI回复"""
+    print(f"[delayed_ai_response] 开始等待 {delay_seconds} 秒... story_id={story_id}, comment_id={comment_id}")
     time.sleep(delay_seconds)
     
+    print(f"[delayed_ai_response] 开始生成AI回复...")
     with app.app_context():
         story = Story.query.get(story_id)
         comment = Comment.query.get(comment_id)
         
         if not story or not comment:
+            print(f"[delayed_ai_response] ERROR: Story or Comment not found!")
             return
         
+        print(f"[delayed_ai_response] 调用 generate_ai_response...")
         from ai_engine import generate_ai_response
         ai_response = generate_ai_response(story, comment)
+        print(f"[delayed_ai_response] AI回复生成完成: {ai_response[:50]}..." if ai_response else "[delayed_ai_response] AI回复为空!")
         
         if ai_response:
             ai_comment = Comment(
