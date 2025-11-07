@@ -250,5 +250,10 @@ def record_user_interaction(story):
         initialize_story_state(story)
     
     state_data = json.loads(story.state_data)
+    
+    # 确保 user_interaction_count 存在
+    if 'user_interaction_count' not in state_data:
+        state_data['user_interaction_count'] = 0
+    
     state_data['user_interaction_count'] += 1
     story.state_data = json.dumps(state_data)
