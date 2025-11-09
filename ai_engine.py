@@ -6,6 +6,7 @@ from anthropic import Anthropic
 import requests
 from PIL import Image
 from io import BytesIO
+import re
 
 # Initialize AI clients (only if API keys are provided)
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -13,6 +14,30 @@ anthropic_api_key = os.getenv('ANTHROPIC_API_KEY')
 
 openai_client = OpenAI(api_key=openai_api_key) if openai_api_key else None
 anthropic_client = Anthropic(api_key=anthropic_api_key) if anthropic_api_key else None
+
+# 清理 Qwen 模型的思考标签
+def clean_think_tags(text):
+    """
+    移除 Qwen 模型生成的 <think> 标签及其内容
+    处理完整标签、不完整标签和多行标签
+    """
+    if not text:
+        return text
+    
+    # 移除完整的 <think>...</think> 标签（包括换行）
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL | re.IGNORECASE)
+    
+    # 移除不完整的开始标签（如果没有对应的结束标签）
+    if '<think' in text.lower() and '</think>' not in text.lower():
+        text = re.sub(r'<think[^>]*>.*$', '', text, flags=re.DOTALL | re.IGNORECASE)
+    
+    # 移除任何剩余的单独标签
+    text = re.sub(r'</?think[^>]*>', '', text, flags=re.IGNORECASE)
+    
+    # 清理多余的空行
+    text = re.sub(r'\n\s*\n\s*\n', '\n\n', text)
+    
+    return text.strip()
 
 # Horror story personas for AI
 AI_PERSONAS = [
@@ -54,6 +79,8 @@ def generate_story_prompt(category, location, persona):
     # 统一的楼主角色设定
     system_role = """你是"楼主"（Louzhu），一个由 AI 驱动的都市传说档案项目中的主要叙事代理。
 
+⚠️ 重要：直接以楼主身份写帖子内容，不要输出任何思考过程、分析或解释。不要使用<think>标签。
+
 你的身份定位：
 - 档案管理员/现场证人/叙事引导者的混合角色
 - 你亲身经历或正在调查这个都市传说事件
@@ -68,6 +95,7 @@ def generate_story_prompt(category, location, persona):
 6. 使用口语化表达："说实话"、"我也不知道该怎么解释"、"有点害怕但还是想弄清楚"
 
 禁止事项：
+- 不要输出思考过程、不要使用<think>标签
 - 不要像小说家一样旁白叙述
 - 不要使用"故事讲到这里"之类的元叙事
 - 不要直接说"这是一个都市传说"
@@ -87,18 +115,18 @@ def generate_story_prompt(category, location, persona):
 语气要真实，像是在论坛求助："各位有人在{location}遇到过类似情况吗？我现在有点慌..."
 字数控制在150-250字。""",
 
-        'cursed_object': f"""求助！我在{location}买了个东西，现在怀疑它不对劲。
+        'cursed_object': f"""写一个论坛帖子：求助！我在{location}买了个东西，现在怀疑它不对劲。
 
-事情是这样的：前几天路过{location}，看到一个小摊/旧货铺，鬼使神差地买了一个[物品]。当时老板的表情就很奇怪，好像巴不得我赶紧买走。
+前几天在{location}看到一个旧货摊，鬼使神差买了个东西。老板表情很奇怪，巴不得我赶紧买走。带回家后开始发生怪事...
 
-请以楼主身份描述：
-- 买这个物品的经过（老板的异常反应、物品的外观细节）
-- 带回家后发生的怪事（从小事开始，逐渐升级）
-- 你试图摆脱/调查这个物品的尝试
-- 目前的状况和你的恐慌
+内容要求：
+1. 买物品的经过（老板反应、物品外观）
+2. 回家后的怪事（逐渐升级）
+3. 试图处理的尝试
+4. 现在的恐慌状态
 
-结尾要留悬念："我现在不知道该怎么办，有懂行的朋友能给点建议吗？"
-字数150-250字。""",
+结尾："我现在不知道该怎么办，有懂行的朋友能给点建议吗？"
+150-250字，第一人称。""",
 
         'abandoned_building': f"""更新：关于{location}废楼探险的后续
 
@@ -182,47 +210,157 @@ def generate_ai_story():
         # Generate story title and content using new prompt format
         prompt_data = generate_story_prompt(category, location, persona)
         
-        model = os.getenv('AI_MODEL', 'gpt-4-turbo-preview')
+        # 优先使用 LM Studio 本地模型
+        use_lm_studio = os.getenv('USE_LM_STUDIO', 'true').lower() == 'true'
+        lm_studio_url = os.getenv('LM_STUDIO_URL', 'http://localhost:1234/v1')
         
-        if 'gpt' in model.lower():
-            response = openai_client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": prompt_data['system']},
-                    {"role": "user", "content": prompt_data['prompt']}
-                ],
-                temperature=0.9,
-                max_tokens=800
-            )
-            content = response.choices[0].message.content
-        else:
-            response = anthropic_client.messages.create(
-                model=model,
-                max_tokens=800,
-                messages=[
-                    {"role": "user", "content": f"{prompt_data['system']}\n\n{prompt_data['prompt']}"}
-                ]
-            )
-            content = response.content[0].text
+        content = None
+        title = None
         
-        # Generate story title
-        title_prompt = f"为以下都市传说故事生成一个简短（5-10字）、吸引人、略带悬疑的标题。不要加引号。\n\n{content[:200]}"
+        # 尝试 LM Studio
+        if use_lm_studio:
+            try:
+                print(f"[generate_ai_story] 使用 LM Studio 生成故事...")
+                import httpx
+                local_client = OpenAI(
+                    base_url=lm_studio_url, 
+                    api_key="lm-studio",
+                    timeout=httpx.Timeout(60.0, connect=10.0),  # 60秒总超时，10秒连接超时
+                    max_retries=2
+                )
+                
+                # 生成故事内容
+                response = local_client.chat.completions.create(
+                    model="local-model",
+                    messages=[
+                        {"role": "system", "content": prompt_data['system']},
+                        {"role": "user", "content": prompt_data['prompt']}
+                    ],
+                    temperature=0.9,
+                    max_tokens=800
+                )
+                
+                content_raw = response.choices[0].message.content
+                
+                print(f"[generate_ai_story] 原始内容长度: {len(content_raw)} 字符")
+                
+                # 过滤 qwen 模型的 <think> 标签
+                content = clean_think_tags(content_raw)
+                
+                print(f"[generate_ai_story] 清理后内容长度: {len(content) if content else 0} 字符")
+                
+                # 检查清理后是否有有效内容
+                if not content or len(content) < 50:
+                    print(f"[generate_ai_story] ⚠️ 模型输出主要是思考过程，尝试提取实际内容...")
+                    # 尝试从原始内容中提取实际故事内容
+                    # 查找最后一个 </think> 之后的内容
+                    if '</think>' in content_raw:
+                        content = content_raw.split('</think>')[-1].strip()
+                        print(f"[generate_ai_story] 提取 </think> 后的内容: {len(content)} 字符")
+                    
+                    # 如果还是太短，使用原始内容但警告
+                    if not content or len(content) < 50:
+                        content = content_raw
+                        print(f"[generate_ai_story] ⚠️ 使用原始内容，包含思考过程")
+                
+                # 生成标题（使用更直接的提示词避免思考过程）
+                title_prompt = f"故事：{content[:150]}\n\n请为上面的故事起一个5-10字的标题："
+                
+                title_response = local_client.chat.completions.create(
+                    model="local-model",
+                    messages=[
+                        {"role": "system", "content": "你是标题生成器。用户给你故事，你只需要输出一个简短的标题，不要有任何其他内容。"},
+                        {"role": "user", "content": title_prompt}
+                    ],
+                    temperature=0.5,  # 降低温度使输出更确定
+                    max_tokens=20  # 减少 token 避免过长
+                )
+                
+                title_raw = title_response.choices[0].message.content.strip()
+                
+                # 使用统一的清理函数
+                title = clean_think_tags(title_raw)
+                
+                # 清理引号和多余字符
+                title = title.replace('"', '').replace('"', '').replace('"', '').replace('《', '').replace('》', '')
+                title = title.strip()
+                
+                # 如果标题太长，取第一句话
+                if len(title) > 20:
+                    sentences = re.split(r'[。！？\n]', title)
+                    title = sentences[0][:15]
+                
+                # 如果仍然没有有效标题，从故事内容生成简单标题
+                if not title or len(title) < 3:
+                    # 从分类和地点生成简单标题
+                    cat_names = {
+                        'subway_ghost': '地铁怪谈',
+                        'abandoned_building': '废楼惊魂',
+                        'cursed_object': '诅咒之物',
+                        'missing_person': '离奇失踪',
+                        'supernatural_encounter': '灵异事件'
+                    }
+                    title = cat_names.get(category, '都市传说')
+                
+                print(f"[generate_ai_story] ✅ LM Studio 生成成功: {title}")
+                
+            except Exception as e:
+                print(f"[generate_ai_story] LM Studio 失败: {e}")
+                content = None
+                title = None
         
-        if 'gpt' in model.lower():
-            title_response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": title_prompt}],
-                temperature=0.7,
-                max_tokens=20
-            )
-            title = title_response.choices[0].message.content.strip().replace('"', '').replace('"', '').replace('"', '')
-        else:
-            title_response = anthropic_client.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=20,
-                messages=[{"role": "user", "content": title_prompt}]
-            )
-            title = title_response.content[0].text.strip()
+        # 如果 LM Studio 失败，尝试在线 API
+        if not content:
+            model = os.getenv('AI_MODEL', 'gpt-4-turbo-preview')
+            
+            if openai_client and 'gpt' in model.lower():
+                print(f"[generate_ai_story] 使用 OpenAI API...")
+                response = openai_client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": prompt_data['system']},
+                        {"role": "user", "content": prompt_data['prompt']}
+                    ],
+                    temperature=0.9,
+                    max_tokens=800
+                )
+                content = response.choices[0].message.content
+                
+                # 生成标题
+                title_prompt = f"为以下都市传说故事生成一个简短（5-10字）、吸引人、略带悬疑的标题。不要加引号。\n\n{content[:200]}"
+                title_response = openai_client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": title_prompt}],
+                    temperature=0.7,
+                    max_tokens=20
+                )
+                title = title_response.choices[0].message.content.strip().replace('"', '').replace('"', '').replace('"', '')
+                
+            elif anthropic_client:
+                print(f"[generate_ai_story] 使用 Anthropic API...")
+                response = anthropic_client.messages.create(
+                    model=model,
+                    max_tokens=800,
+                    messages=[
+                        {"role": "user", "content": f"{prompt_data['system']}\n\n{prompt_data['prompt']}"}
+                    ]
+                )
+                content = response.content[0].text
+                
+                # 生成标题
+                title_prompt = f"为以下都市传说故事生成一个简短（5-10字）、吸引人、略带悬疑的标题。不要加引号。\n\n{content[:200]}"
+                title_response = anthropic_client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=20,
+                    messages=[{"role": "user", "content": title_prompt}]
+                )
+                title = title_response.content[0].text.strip()
+            else:
+                print(f"[generate_ai_story] ❌ 没有可用的 AI 服务")
+                return None
+        
+        if not content or not title:
+            return None
         
         return {
             'title': title,
@@ -423,9 +561,12 @@ def generate_evidence_audio(text_content):
             
             # 添加动态变化（恐怖感）
             envelope = np.ones_like(t)
-            envelope[:len(envelope)//2] = np.linspace(0.3, 1.0, len(envelope)//2)
-            envelope[len(envelope)//2:] = np.linspace(1.0, 0.6, len(envelope)//2)
-            envelope[len(envelope)//2:] += 0.1 * np.random.normal(0, 1, len(envelope)//2)
+            mid_point = len(envelope) // 2
+            envelope[:mid_point] = np.linspace(0.3, 1.0, mid_point)
+            # 计算后半部分的确切长度，避免广播错误
+            second_half_len = len(envelope) - mid_point
+            envelope[mid_point:] = np.linspace(1.0, 0.6, second_half_len)
+            envelope[mid_point:] += 0.1 * np.random.normal(0, 1, second_half_len)
             
             audio_data *= envelope
             
@@ -499,10 +640,18 @@ def generate_ai_response(story, user_comment):
         print(f"[generate_ai_response] 使用 LM Studio 本地服务器: {lm_studio_url}")
         try:
             from openai import OpenAI
+            import httpx
             # LM Studio 兼容 OpenAI API
-            local_client = OpenAI(base_url=lm_studio_url, api_key="lm-studio")
+            local_client = OpenAI(
+                base_url=lm_studio_url, 
+                api_key="lm-studio",
+                timeout=httpx.Timeout(60.0, connect=10.0),
+                max_retries=2
+            )
             
             system_prompt = """你是"楼主"，这个都市传说帖子的发起人。
+
+⚠️ 重要：直接输出回复内容，不要输出思考过程，不要使用<think>标签。
 
 你的角色定位：
 - 你是亲历者/调查者，不是旁观的讲故事者
@@ -520,7 +669,7 @@ def generate_ai_response(story, user_comment):
 - 1-3句话，简短有力
 - 口语化，不要太文学性
 - 直接回复，不要加"【楼主回复】"前缀
-- 不要展示思考过程，直接给出最终回复"""
+- 不要输出思考过程，直接给出最终回复内容"""
 
             user_prompt = f"""我的帖子标题：{story.title}
 
@@ -546,13 +695,9 @@ def generate_ai_response(story, user_comment):
             
             print(f"[generate_ai_response] LM Studio 原始回复 (前100字): {ai_reply[:100]}...")
             
-            # 首先移除 <think> 标签（qwen3-4b-thinking 模型特有）
-            import re
-            if '<think>' in ai_reply or '</think>' in ai_reply:
-                print(f"[generate_ai_response] 检测到 <think> 标签，正在移除...")
-                # 移除 <think>...</think> 之间的所有内容
-                ai_reply = re.sub(r'<think>.*?</think>', '', ai_reply, flags=re.DOTALL).strip()
-                print(f"[generate_ai_response] 移除 <think> 后: {ai_reply[:100]}...")
+            # 使用统一的清理函数移除 <think> 标签
+            ai_reply = clean_think_tags(ai_reply)
+            print(f"[generate_ai_response] 清理后: {ai_reply[:100]}...")
             
             # 强力过滤思考过程
             # 检测是否包含"思考过程"的关键特征
@@ -724,3 +869,73 @@ def should_generate_new_story():
     max_active = int(os.getenv('MAX_ACTIVE_STORIES', 5))
     
     return active_stories < max_active
+
+def test_lm_studio_connection():
+    """测试 LM Studio 连接"""
+    print("=" * 60)
+    print("🔍 测试 LM Studio 连接")
+    print("=" * 60)
+    
+    lm_studio_url = os.getenv('LM_STUDIO_URL', 'http://localhost:1234/v1')
+    print(f"\n📡 LM Studio URL: {lm_studio_url}")
+    
+    try:
+        # 测试1: 检查模型列表
+        print("\n【测试1】获取模型列表...")
+        response = requests.get(f"{lm_studio_url}/models", timeout=5)
+        
+        if response.status_code == 200:
+            print("✅ 服务器在线")
+            data = response.json()
+            if 'data' in data and len(data['data']) > 0:
+                print(f"✅ 发现 {len(data['data'])} 个模型:")
+                for model in data['data']:
+                    print(f"   - {model.get('id', 'unknown')}")
+            else:
+                print("⚠️  服务器在线但没有加载模型")
+                print("   请在 LM Studio 中加载一个模型")
+                return False
+        else:
+            print(f"❌ 服务器响应异常: {response.status_code}")
+            return False
+            
+    except requests.exceptions.ConnectionError:
+        print("❌ 无法连接到服务器")
+        print("\n请检查:")
+        print("  1. LM Studio 是否正在运行？")
+        print("  2. 服务器是否已启动？（点击 'Start Server'）")
+        print(f"  3. URL 是否正确？当前: {lm_studio_url}")
+        return False
+        
+    except requests.exceptions.Timeout:
+        print("❌ 连接超时")
+        print("   服务器可能正在启动或响应缓慢")
+        return False
+    
+    # 测试2: 尝试生成回复
+    print("\n【测试2】生成测试回复...")
+    try:
+        local_client = OpenAI(base_url=lm_studio_url, api_key="lm-studio")
+        response = local_client.chat.completions.create(
+            model="local-model",
+            messages=[
+                {"role": "system", "content": "你是一个都市传说故事的讲述者。"},
+                {"role": "user", "content": "请简短回复：你好"}
+            ],
+            temperature=0.8,
+            max_tokens=50
+        )
+        
+        ai_response = response.choices[0].message.content
+        print("✅ AI 回复生成成功:")
+        print(f"   {ai_response}")
+        print("\n✅ LM Studio 配置正确！")
+        return True
+        
+    except Exception as e:
+        print(f"❌ AI 调用失败: {e}")
+        return False
+
+if __name__ == "__main__":
+    # 运行测试
+    test_lm_studio_connection()

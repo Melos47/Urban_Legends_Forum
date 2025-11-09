@@ -244,17 +244,22 @@ def add_comment(story_id):
         daemon=True
     ).start()
     
-    # 检查是否达到证据生成阈值
-    comment_count = len(story.comments)
+    # 检查是否达到证据生成阈值（直接从数据库查询，确保准确）
+    comment_count = Comment.query.filter_by(story_id=story_id).count()
     evidence_threshold = int(os.getenv('EVIDENCE_COMMENT_THRESHOLD', 2))
     
-    if comment_count >= evidence_threshold and len(story.evidence) == 0:
-        print(f"[add_comment] 评论数达到阈值 ({comment_count}>={evidence_threshold})，启动证据生成...")
+    print(f"[add_comment] 当前评论数: {comment_count}, 证据阈值: {evidence_threshold}")
+    
+    # 每达到阈值的倍数就生成新证据（例如：2,4,6,8...条评论时）
+    if comment_count >= evidence_threshold and comment_count % evidence_threshold == 0:
+        print(f"[add_comment] ✅ 评论数达到阈值倍数 ({comment_count})，启动证据生成...")
         threading.Thread(
             target=generate_evidence_for_story,
             args=(story_id,),
             daemon=True
         ).start()
+    else:
+        print(f"[add_comment] 未达到证据生成条件 (评论数: {comment_count}, 需要: {evidence_threshold}的倍数)")
     
     return jsonify({
         'comment': {

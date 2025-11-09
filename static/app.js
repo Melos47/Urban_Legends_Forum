@@ -8,6 +8,8 @@ let currentUser = null;
 let token = localStorage.getItem('token');
 let allStories = [];
 let currentCategory = 'all';
+let lastStoryCount = 0;
+let lastNotificationCheck = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('✨ 都市传说档案馆已加载');
@@ -16,6 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
     bindEvents();
     updateClock();
     setInterval(updateClock, 1000);
+    
+    // 每30秒检查新故事和通知
+    setInterval(() => {
+        loadStories(true);  // 静默刷新
+        if (currentUser) checkNotifications();
+    }, 30000);
+    
+    // 初始通知检查
+    if (currentUser) checkNotifications();
 });
 
 function bindEvents() {
@@ -56,16 +67,53 @@ function bindEvents() {
     }
 }
 
-async function loadStories() {
+async function loadStories(silent = false) {
     try {
         const response = await fetch(API_BASE + '/stories');
-        allStories = await response.json();
+        const newStories = await response.json();
+        
+        // 检测新故事
+        if (!silent && lastStoryCount > 0 && newStories.length > lastStoryCount) {
+            const diff = newStories.length - lastStoryCount;
+            showToast(`🎃 有 ${diff} 个新故事发布了！`, 'info');
+        }
+        
+        lastStoryCount = newStories.length;
+        allStories = newStories;
+        
         const countEl = document.getElementById('story-count');
         if (countEl) countEl.textContent = allStories.length;
         renderStories();
     } catch (error) {
         console.error('加载故事失败:', error);
-        showToast('加载故事失败', 'error');
+        if (!silent) showToast('加载故事失败', 'error');
+    }
+}
+
+async function checkNotifications() {
+    if (!token || !currentUser) return;
+    
+    try {
+        const res = await fetch(API_BASE + '/notifications', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (res.ok) {
+            const notifications = await res.json();
+            const unread = notifications.filter(n => !n.is_read);
+            
+            if (unread.length > lastNotificationCheck) {
+                // 有新通知
+                const newCount = unread.length - lastNotificationCheck;
+                unread.slice(0, newCount).forEach(n => {
+                    showToast(`💬 ${n.content}`, 'info');
+                });
+            }
+            
+            lastNotificationCheck = unread.length;
+        }
+    } catch (error) {
+        console.error('检查通知失败:', error);
     }
 }
 
@@ -282,6 +330,9 @@ async function handleAuthSubmit(event) {
             updateAuthUI();
             closeAuthModal();
             showToast((isReg ? '注册' : '登录') + '成功', 'success');
+            
+            // 登录成功后立即检查通知
+            checkNotifications();
         } else {
             const err = await res.json();
             showToast(err.error || '错误', 'error');
