@@ -221,26 +221,40 @@ def generate_ai_story():
         if use_lm_studio:
             try:
                 print(f"[generate_ai_story] 使用 LM Studio 生成故事...")
-                import httpx
-                local_client = OpenAI(
-                    base_url=lm_studio_url, 
-                    api_key="lm-studio",
-                    timeout=httpx.Timeout(60.0, connect=10.0),  # 60秒总超时，10秒连接超时
-                    max_retries=2
-                )
+                import subprocess
+                import json
                 
-                # 生成故事内容
-                response = local_client.chat.completions.create(
-                    model="local-model",
-                    messages=[
+                # 使用 curl 调用 LM Studio（Python HTTP 库与 LM Studio 有兼容性问题）
+                chat_url = f"{lm_studio_url.rstrip('/v1')}/v1/chat/completions"
+                
+                request_data = {
+                    "messages": [
                         {"role": "system", "content": prompt_data['system']},
                         {"role": "user", "content": prompt_data['prompt']}
                     ],
-                    temperature=0.9,
-                    max_tokens=800
+                    "temperature": 0.9,
+                    "max_tokens": 800
+                }
+                
+                curl_command = [
+                    'curl', '-s', '-X', 'POST', chat_url,
+                    '-H', 'Content-Type: application/json',
+                    '-d', json.dumps(request_data, ensure_ascii=False),
+                    '--max-time', '120'
+                ]
+                
+                result = subprocess.run(
+                    curl_command,
+                    capture_output=True,
+                    text=True,
+                    timeout=120
                 )
                 
-                content_raw = response.choices[0].message.content
+                if result.returncode != 0:
+                    raise Exception(f"curl 命令失败: {result.stderr}")
+                
+                response_data = json.loads(result.stdout)
+                content_raw = response_data['choices'][0]['message']['content']
                 
                 print(f"[generate_ai_story] 原始内容长度: {len(content_raw)} 字符")
                 
@@ -266,17 +280,34 @@ def generate_ai_story():
                 # 生成标题（使用更直接的提示词避免思考过程）
                 title_prompt = f"故事：{content[:150]}\n\n请为上面的故事起一个5-10字的标题："
                 
-                title_response = local_client.chat.completions.create(
-                    model="local-model",
-                    messages=[
+                title_request = {
+                    "messages": [
                         {"role": "system", "content": "你是标题生成器。用户给你故事，你只需要输出一个简短的标题，不要有任何其他内容。"},
                         {"role": "user", "content": title_prompt}
                     ],
-                    temperature=0.5,  # 降低温度使输出更确定
-                    max_tokens=20  # 减少 token 避免过长
+                    "temperature": 0.5,
+                    "max_tokens": 20
+                }
+                
+                title_curl_command = [
+                    'curl', '-s', '-X', 'POST', chat_url,
+                    '-H', 'Content-Type: application/json',
+                    '-d', json.dumps(title_request, ensure_ascii=False),
+                    '--max-time', '60'
+                ]
+                
+                title_result = subprocess.run(
+                    title_curl_command,
+                    capture_output=True,
+                    text=True,
+                    timeout=60
                 )
                 
-                title_raw = title_response.choices[0].message.content.strip()
+                if title_result.returncode != 0:
+                    raise Exception(f"标题生成失败: {title_result.stderr}")
+                
+                title_response_data = json.loads(title_result.stdout)
+                title_raw = title_response_data['choices'][0]['message']['content'].strip()
                 
                 # 使用统一的清理函数
                 title = clean_think_tags(title_raw)
@@ -305,7 +336,21 @@ def generate_ai_story():
                 print(f"[generate_ai_story] ✅ LM Studio 生成成功: {title}")
                 
             except Exception as e:
-                print(f"[generate_ai_story] LM Studio 失败: {e}")
+                import traceback
+                error_message = str(e)
+                print(f"[generate_ai_story] ❌ LM Studio 失败: {type(e).__name__}: {e}")
+                
+                # 特殊处理 503 错误
+                if "503" in error_message or "InternalServerError" in str(type(e).__name__):
+                    print("[generate_ai_story] ⚠️ 检测到 503 错误 - 可能的原因:")
+                    print("   1. LM Studio 模型未完全加载")
+                    print("   2. 服务器负载过高")
+                    print("   3. 并发请求过多")
+                    print("[generate_ai_story] 💡 请在 LM Studio 'Local Server' 标签确认模型已加载")
+                else:
+                    print(f"[generate_ai_story] 详细错误:")
+                    traceback.print_exc()
+                
                 content = None
                 title = None
         
@@ -639,15 +684,9 @@ def generate_ai_response(story, user_comment):
     if use_lm_studio:
         print(f"[generate_ai_response] 使用 LM Studio 本地服务器: {lm_studio_url}")
         try:
-            from openai import OpenAI
-            import httpx
-            # LM Studio 兼容 OpenAI API
-            local_client = OpenAI(
-                base_url=lm_studio_url, 
-                api_key="lm-studio",
-                timeout=httpx.Timeout(60.0, connect=10.0),
-                max_retries=2
-            )
+            # 使用 subprocess 调用 curl（因为 Python HTTP 库与 LM Studio 有兼容性问题）
+            import subprocess
+            import json
             
             system_prompt = """你是"楼主"，这个都市传说帖子的发起人。
 
@@ -681,17 +720,41 @@ def generate_ai_response(story, user_comment):
 
 请以楼主身份回复这条评论。直接给出回复内容，不要包含任何思考过程或分析。"""
 
-            response = local_client.chat.completions.create(
-                model="local-model",  # LM Studio 会使用当前加载的模型
-                messages=[
+            # 使用 curl 调用 LM Studio（Python HTTP 库与 LM Studio 有兼容性问题）
+            # 构建请求数据
+            request_data = {
+                "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                temperature=0.8,
-                max_tokens=200
+                "temperature": 0.8,
+                "max_tokens": 200
+            }
+            
+            # 使用 curl 发送请求
+            chat_url = f"{lm_studio_url.rstrip('/v1')}/v1/chat/completions"
+            print(f"[generate_ai_response] 使用 curl 调用: {chat_url}")
+            
+            curl_command = [
+                'curl', '-s', '-X', 'POST', chat_url,
+                '-H', 'Content-Type: application/json',
+                '-d', json.dumps(request_data, ensure_ascii=False),
+                '--max-time', '120'
+            ]
+            
+            result = subprocess.run(
+                curl_command,
+                capture_output=True,
+                text=True,
+                timeout=120
             )
             
-            ai_reply = response.choices[0].message.content.strip()
+            if result.returncode != 0:
+                raise Exception(f"curl 命令失败: {result.stderr}")
+            
+            # 解析响应
+            response_data = json.loads(result.stdout)
+            ai_reply = response_data['choices'][0]['message']['content'].strip()
             
             print(f"[generate_ai_response] LM Studio 原始回复 (前100字): {ai_reply[:100]}...")
             
@@ -782,7 +845,21 @@ def generate_ai_response(story, user_comment):
             return f"【楼主回复】{ai_reply}"
             
         except Exception as e:
-            print(f"[generate_ai_response] LM Studio 调用失败: {e}")
+            import traceback
+            error_message = str(e)
+            print(f"[generate_ai_response] ❌ LM Studio 调用失败: {type(e).__name__}: {e}")
+            
+            # 特殊处理 503 错误
+            if "503" in error_message or "InternalServerError" in str(type(e).__name__):
+                print("[generate_ai_response] ⚠️ 检测到 503 错误 - 可能的原因:")
+                print("   1. LM Studio 模型未完全加载")
+                print("   2. 服务器负载过高")
+                print("   3. 并发请求过多")
+                print("[generate_ai_response] 💡 请在 LM Studio 'Local Server' 标签确认模型已加载")
+            else:
+                print(f"[generate_ai_response] 详细错误:")
+                traceback.print_exc()
+            
             print("[generate_ai_response] 回退到模板回复")
     
     # Check if cloud API keys are configured
