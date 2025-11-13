@@ -466,12 +466,16 @@
             border: 1px solid var(--border-dark);
             padding: 4px;
             background-color: var(--text-light);
+            display: flex;
+            flex-direction: column;
         }
         
         .evidence-item img {
             width: 100%;
-            height: auto;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
             border: 1px solid var(--border-dark);
+            background-color: #000;
         }
         
         .evidence-item audio {

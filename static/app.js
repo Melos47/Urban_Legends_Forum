@@ -212,7 +212,7 @@ async function showStoryDetail(storyId) {
             story.evidence.forEach(e => {
                 html += '<div class="evidence-item">';
                 if (e.type === 'image') {
-                    html += '<img src="' + e.file_path + '" style="width:100%; max-height:100px; border: 1px solid #666;">';
+                    html += '<img src="' + e.file_path + '" style="width:100%; aspect-ratio: 1/1; object-fit: contain; background-color: #000; border: 1px solid #666;">';
                 } else {
                     html += '<audio controls style="width:100%; height:30px;"><source src="' + e.file_path + '"></audio>';
                 }

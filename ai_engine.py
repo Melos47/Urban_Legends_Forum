@@ -438,15 +438,109 @@ def generate_evidence_image(story_title, story_content, comment_context=""):
                 # 检查是否有可用的模型
                 model_id = os.getenv('DIFFUSION_MODEL', 'runwayml/stable-diffusion-v1-5')
                 
-                # 创建伪纪实风格的提示词（类似图片中的样式）
-                # 根据故事内容生成具体的场景描述
-                location_hint = story_title[:50] if story_title else "urban location"
+                # 智能分析故事内容 + 评论内容，生成与故事直接相关的真实场景
+                story_text = (story_title + " " + story_content[:200]).lower()
+                # 加入评论和贴文的关键词
+                if comment_context:
+                    story_text += " " + comment_context.lower()
                 
-                # 伪纪实风格：真实的照片质感，但内容诡异
-                prompt = f"realistic documentary style photograph, grainy film texture, surveillance camera footage, found photograph, {location_hint}, low light conditions, slightly blurred, atmospheric fog, mysterious shadow, amateur photography, evidence photo, timestamp overlay, security footage aesthetic, nocturnal scene, eerie but realistic"
+                print(f"[generate_evidence_image] 分析内容: {story_text[:150]}...")
                 
-                # 负面提示词：避免艺术化、抽象、过于恐怖的元素
-                negative_prompt = "artistic, abstract art, painting, illustration, cartoon, anime, 3d render, digital art, fantasy, unrealistic, monsters, gore, explicit horror, professional photography, studio lighting, high contrast, oversaturated, colorful, bright, clear focus"
+                # 从故事中提取关键场景元素（包括评论中的关键词）
+                scene_keywords = {
+                    # 地铁相关
+                    'subway': ['subway train interior with empty seats', 'subway station platform', 'metro train car'],
+                    '地铁': ['subway train interior with empty seats', 'subway station platform at night', 'metro corridor'],
+                    '车厢': ['train car interior, seats and handrails', 'empty subway carriage'],
+                    
+                    # 镜子相关
+                    'mirror': ['bathroom with mirror and sink', 'bedroom mirror on dresser', 'mirror on bathroom wall'],
+                    '镜子': ['bathroom mirror above sink, faucet visible', 'bedroom mirror with dresser'],
+                    '浴室': ['residential bathroom, mirror, sink, tiles', 'bathroom interior with bathtub'],
+                    
+                    # 门相关  
+                    'door': ['apartment door with peephole and handle', 'residential hallway with doors'],
+                    '门': ['apartment door, door handle, peephole', 'residential building hallway'],
+                    '敲门': ['apartment entrance door closeup', 'door with door number plate'],
+                    
+                    # 楼道相关
+                    'hallway': ['apartment building corridor', 'residential stairwell'],
+                    '走廊': ['apartment building hallway with doors', 'residential corridor with lighting'],
+                    '楼道': ['apartment stairwell, concrete steps', 'building corridor with elevator'],
+                    '楼梯': ['residential building staircase, handrails', 'stairwell in apartment building'],
+                    
+                    # 窗户相关
+                    'window': ['apartment window view at night', 'window with curtains'],
+                    '窗': ['residential window from inside', 'apartment window'],
+                    
+                    # 房间相关
+                    '卧室': ['bedroom interior, bed and furniture', 'residential bedroom at night'],
+                    '客厅': ['living room with sofa and tv', 'apartment living room'],
+                    '厨房': ['residential kitchen, appliances', 'apartment kitchen interior'],
+                    
+                    # 其他场景
+                    '手机': ['smartphone screen in dark', 'phone camera viewfinder'],
+                    '电话': ['old telephone on table', 'phone in dark room'],
+                    '照片': ['photograph lying on table', 'old photo on desk'],
+                    '笔记': ['handwritten note on paper', 'notebook page with writing'],
+                    
+                    # 更多具体场景 - 包含用户可能评论的内容
+                    '床': ['bedroom bed under dim light', 'bed with sheets and pillows'],
+                    '沙发': ['living room sofa in dark', 'couch in apartment'],
+                    '窗帘': ['window with closed curtains', 'dark curtains on window'],
+                    '天花板': ['apartment ceiling detail', 'ceiling in dark room'],
+                    '地板': ['wooden floor in dim light', 'apartment floor detail'],
+                    '角落': ['apartment corner in shadow', 'room corner at night'],
+                    '影子': ['shadow on wall in dark', 'mysterious shadow in room'],
+                    '脚步': ['empty hallway floor', 'stairwell steps'],
+                    '声音': ['empty room interior', 'residential space at night'],
+                    '冷': ['frost on window', 'cold apartment interior'],
+                    '热': ['humid bathroom interior', 'steamy mirror'],
+                }
+                
+                # 匹配场景描述 - 优先级匹配
+                scene_desc = None
+                matched_keyword = None
+                for keyword, descriptions in scene_keywords.items():
+                    if keyword in story_text:
+                        scene_desc = random.choice(descriptions)
+                        matched_keyword = keyword
+                        print(f"[generate_evidence_image] 匹配关键词: {keyword} -> {scene_desc}")
+                        break
+                
+                # 如果没有匹配，使用通用场景
+                if not scene_desc:
+                    scene_desc = 'dimly lit urban apartment interior, everyday furniture'
+                    print(f"[generate_evidence_image] 使用默认场景")
+                
+                # 纪实照片风格的 prompt - 真实场景中融入微妙恐怖元素
+                # 关键：不明显但令人不安，仔细看才能发现诡异细节
+                prompt = (
+                    f"realistic photograph, {scene_desc}, "
+                    f"taken with smartphone camera at night, "
+                    f"low light conditions, grainy image quality, "
+                    f"slightly unfocused, amateur photography, "
+                    f"real world scene, photographic evidence style, "
+                    f"visible details and textures, concrete objects, "
+                    f"documentary photo aesthetic, "
+                    f"subtle creepy atmosphere, barely visible face in shadow, "
+                    f"inexplicable shadow, eerie presence, "
+                    f"something unsettling about this place, hidden disturbing details"
+                )
+                
+                # 负面提示词 - 避免太扭曲/太抽象，但保留微妙恐怖
+                negative_prompt = (
+                    "abstract, artistic, illustration, painting, drawing, sketch, "
+                    "cartoon, anime, 3d render, cgi, digital art, "
+                    "extremely distorted, heavily warped, grotesque, monstrous, "
+                    "obvious demon, obvious ghost, obvious supernatural creature, "
+                    "repetitive patterns, geometric shapes, abstract forms, "
+                    "professional studio photography, dramatic lighting, cinematic, "
+                    "motion blur, artistic blur, tilt-shift, "
+                    "text, watermarks, signatures, "
+                    "completely dark, pitch black, completely invisible, "
+                    "overly bright, blown out highlights"
+                )
                 
                 print(f"[generate_evidence_image] Prompt: {prompt[:100]}...")
                 
@@ -462,51 +556,52 @@ def generate_evidence_image(story_title, story_content, comment_context=""):
                 if torch.cuda.is_available():
                     pipe = pipe.to("cuda")
                     print("[generate_evidence_image] ✅ 使用GPU加速")
-                    num_steps = 20
-                    img_size = 512
+                    num_steps = 25
+                    img_size = 512  # GPU可以直接生成512x512
                 else:
-                    print("[generate_evidence_image] ⚠️ 未检测到GPU，使用CPU生成（降低质量以加快速度）")
-                    # CPU模式：大幅降低质量以加快速度
-                    num_steps = 8  # 从20降到8步
-                    img_size = 256  # 从512降到256像素
+                    print("[generate_evidence_image] ⚠️ 未检测到GPU，使用CPU生成")
+                    # CPU模式：生成512x512正方形图片，避免拉伸变形
+                    num_steps = 20  # 更多步数确保质量
+                    img_size = 512  # 直接生成512x512，无需放大
                 
-                # 生成图片
+                # 生成图片 - 始终生成512x512正方形
                 image = pipe(
                     prompt,
                     negative_prompt=negative_prompt,
-                    num_inference_steps=num_steps,  # CPU: 8步, GPU: 20步
-                    guidance_scale=7.5,
+                    num_inference_steps=num_steps,  # CPU: 20步, GPU: 25步
+                    guidance_scale=8.5,  # 提高guidance提升细节
                     height=img_size,
                     width=img_size
                 ).images[0]
                 
-                # 如果是256x256，放大到512x512（保持低质量感）
-                if img_size == 256:
-                    image = image.resize((512, 512), Image.Resampling.BILINEAR)  # 使用BILINEAR获得更真实的模糊感
+                # 确保输出是512x512的正方形（防止拉伸）
+                if image.size != (512, 512):
+                    image = image.resize((512, 512), Image.Resampling.LANCZOS)  # 使用LANCZOS保持细节
                 
-                # 后处理：模拟真实的监控录像/手机拍摄效果
-                # 1. 轻微降低饱和度（模拟夜视/低光环境）
+                # 后处理：模拟手机拍摄效果，保持清晰度
+                # 1. 轻微降低饱和度（保持真实感）
                 from PIL import ImageEnhance
                 enhancer = ImageEnhance.Color(image)
-                image = enhancer.enhance(0.6)  # 降低饱和度到60%
+                image = enhancer.enhance(0.85)  # 保持85%饱和度
                 
-                # 2. 调整亮度（模拟曝光不足）
+                # 2. 调整亮度（保持细节可见）
                 enhancer = ImageEnhance.Brightness(image)
-                image = enhancer.enhance(0.75)  # 稍微变暗
+                image = enhancer.enhance(0.85)  # 轻微变暗
                 
-                # 3. 轻微对比度提升（模拟监控录像特征）
+                # 3. 适度增加对比度
                 enhancer = ImageEnhance.Contrast(image)
-                image = enhancer.enhance(1.15)
+                image = enhancer.enhance(1.15)  # 适度提高对比度
                 
-                # 4. 添加细微噪点（模拟胶片颗粒）
+                # 4. 保持锐度
+                enhancer = ImageEnhance.Sharpness(image)
+                image = enhancer.enhance(1.1)  # 轻微提升锐度
+                
+                # 5. 添加极轻微噪点（模拟夜拍）
                 import numpy as np
                 img_array = np.array(image)
-                noise = np.random.normal(0, 3, img_array.shape)  # 细微噪点
+                noise = np.random.normal(0, 3, img_array.shape)  # 极轻微噪点
                 img_array = np.clip(img_array + noise, 0, 255).astype(np.uint8)
                 image = Image.fromarray(img_array)
-                
-                # 5. 轻微模糊（模拟手抖/对焦不准）
-                image = image.filter(ImageFilter.GaussianBlur(radius=0.5))
                 
                 # 6. 添加监控录像样式的时间戳（右下角，类似图片中的样式）
                 from PIL import ImageDraw, ImageFont
@@ -548,15 +643,29 @@ def generate_evidence_image(story_title, story_content, comment_context=""):
             import numpy as np
             
             # 创建带有渐变的暗色背景（模拟低光环境）
-            img = Image.new('RGB', (512, 512), color=(25, 28, 32))
-            
-            # 添加一些暗色形状（模拟模糊的物体/阴影）
+            img = Image.new('RGB', (512, 512), color=(30, 32, 35))
             draw = ImageDraw.Draw(img)
-            for _ in range(5):
-                x1, y1 = random.randint(0, 400), random.randint(0, 400)
-                x2, y2 = x1 + random.randint(50, 150), y1 + random.randint(50, 150)
-                gray = random.randint(15, 50)
-                draw.rectangle([x1, y1, x2, y2], fill=(gray, gray, gray+5))
+            
+            # 根据故事类型添加具象的简单几何图形（模拟具体场景）
+            if '地铁' in story_title or '车厢' in story_title:
+                # 模拟地铁车厢内部：座椅、扶手
+                draw.rectangle([50, 300, 150, 450], fill=(40, 42, 45))  # 座椅
+                draw.rectangle([350, 300, 450, 450], fill=(38, 40, 43))  # 座椅
+                draw.line([(256, 0), (256, 200)], fill=(60, 60, 60), width=5)  # 扶手杆
+            elif '镜子' in story_title:
+                # 模拟镜子和洗手台
+                draw.rectangle([100, 100, 400, 400], fill=(45, 48, 52))  # 镜子框
+                draw.rectangle([150, 350, 350, 450], fill=(55, 55, 58))  # 洗手台
+            elif '门' in story_title or '楼道' in story_title:
+                # 模拟门和走廊
+                draw.rectangle([180, 50, 330, 480], fill=(50, 45, 40))  # 门
+                draw.ellipse([235, 240, 275, 280], fill=(70, 70, 70))  # 门把手
+                draw.rectangle([10, 100, 100, 150], fill=(60, 55, 50))  # 墙上的东西
+            else:
+                # 默认：房间内部物品
+                draw.rectangle([80, 250, 200, 450], fill=(45, 43, 40))  # 家具
+                draw.rectangle([320, 200, 450, 400], fill=(42, 40, 38))  # 家具
+                draw.line([(0, 380), (512, 380)], fill=(35, 33, 30), width=3)  # 地板线
             
             # 添加细微噪点（模拟胶片颗粒）
             pixels = img.load()

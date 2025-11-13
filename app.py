@@ -519,27 +519,25 @@ def generate_evidence_for_story(story_id):
         
         # 收集评论内容作为上下文
         comment_texts = [c.content for c in story.comments if not c.is_ai_response]
-        comment_context = " ".join(comment_texts[:3])  # 使用前3条评论
+        comment_context = " ".join(comment_texts[:5])  # 使用前5条评论
         
-        # 生成1-2张图片证据
-        image_count = 2
-        for i in range(image_count):
-            print(f"[generate_evidence_for_story] 生成图片证据 {i+1}/{image_count}...")
-            image_path = generate_evidence_image(
-                story.title,
-                story.content,
-                comment_context
+        # 每次只生成1张图片证据
+        print(f"[generate_evidence_for_story] 生成图片证据 (1张)...")
+        image_path = generate_evidence_image(
+            story.title,
+            story.content,
+            comment_context
+        )
+        
+        if image_path:
+            evidence = Evidence(
+                story_id=story_id,
+                evidence_type='image',
+                file_path=image_path,
+                description="现场拍摄 - 基于网友反馈"
             )
-            
-            if image_path:
-                evidence = Evidence(
-                    story_id=story_id,
-                    evidence_type='image',
-                    file_path=image_path,
-                    description=f"现场拍摄 #{i+1} - 基于网友反馈补充"
-                )
-                db.session.add(evidence)
-                print(f"[generate_evidence_for_story] ✅ 图片证据 {i+1} 已生成: {image_path}")
+            db.session.add(evidence)
+            print(f"[generate_evidence_for_story] ✅ 图片证据已生成: {image_path}")
         
         # 生成1个音频证据
         print(f"[generate_evidence_for_story] 生成音频证据...")
@@ -558,7 +556,7 @@ def generate_evidence_for_story(story_id):
             print(f"[generate_evidence_for_story] ✅ 音频证据已生成: {audio_path}")
         
         # 更新故事内容，添加证据说明
-        story.content += "\n\n【证据更新】\n根据大家的反馈，我回到现场又拍了几张照片，还录了音。你们自己看吧...我现在真的很害怕。"
+        story.content += "\n\n【证据更新】\n根据大家的反馈，我回到现场又拍了张照片，还录了音。你们自己看吧...我现在真的很害怕。"
         story.updated_at = datetime.utcnow()
         
         db.session.commit()
