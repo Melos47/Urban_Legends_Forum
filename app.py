@@ -364,7 +364,7 @@ def add_comment(story_id):
         print(f"[add_comment] ✅ 用户评论数达到阈值倍数 ({user_comment_count})，启动证据生成...")
         threading.Thread(
             target=generate_evidence_for_story,
-            args=(story_id,),
+            args=(story_id, comment.id),  # 传递触发评论的ID
             daemon=True
         ).start()
     else:
@@ -505,7 +505,7 @@ def delayed_ai_response(story_id, comment_id, delay_seconds=60):
             
             db.session.commit()
 
-def generate_evidence_for_story(story_id):
+def generate_evidence_for_story(story_id, trigger_comment_id=None):
     """为故事生成证据（图片和音频）"""
     print(f"[generate_evidence_for_story] 开始为故事 ID={story_id} 生成证据...")
     
@@ -517,9 +517,17 @@ def generate_evidence_for_story(story_id):
         
         from ai_engine import generate_evidence_image, generate_evidence_audio
         
-        # 收集评论内容作为上下文
-        comment_texts = [c.content for c in story.comments if not c.is_ai_response]
-        comment_context = " ".join(comment_texts[:5])  # 使用前5条评论
+        # 优先使用触发生成的最新评论，其次是其他评论
+        comment_context = ""
+        if trigger_comment_id:
+            trigger_comment = Comment.query.get(trigger_comment_id)
+            if trigger_comment and not trigger_comment.is_ai_response:
+                comment_context = trigger_comment.content + " "  # 最新评论优先
+                print(f"[generate_evidence_for_story] 使用触发评论: {trigger_comment.content[:50]}...")
+        
+        # 添加其他用户评论作为补充上下文
+        other_comments = [c.content for c in story.comments if not c.is_ai_response and c.id != trigger_comment_id]
+        comment_context += " ".join(other_comments[:4])  # 再加4条其他评论
         
         # 每次只生成1张图片证据
         print(f"[generate_evidence_for_story] 生成图片证据 (1张)...")

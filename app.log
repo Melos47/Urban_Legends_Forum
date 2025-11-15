@@ -1,0 +1,20 @@
+✅ Background scheduler started!
+   - Story generation: every 10 minutes
+   - State progression: every 30 minutes
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 464-554-009
+127.0.0.1 - - [13/Nov/2025 19:55:40] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [13/Nov/2025 19:56:29] "HEAD / HTTP/1.1" 200 -
+127.0.0.1 - - [13/Nov/2025 19:56:29] "GET /api/stories HTTP/1.1" 200 -
+127.0.0.1 - - [13/Nov/2025 19:57:36] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [13/Nov/2025 19:57:37] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+ * Detected change in '/Users/siqi/Documents/PolyU/Sem1/SD5913/FinalCode/app.py', reloading
+✅ Background scheduler started!
+   - Story generation: every 10 minutes
+   - State progression: every 30 minutes

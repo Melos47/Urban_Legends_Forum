@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000);
     
+    // 新菜单栏事件
+    bindHeaderEvents();
+    
     // 每30秒检查新故事和通知
     setInterval(() => {
         loadStories(true);  // 静默刷新
@@ -39,6 +42,7 @@ function bindEvents() {
     const toggleAuthBtn = document.getElementById('toggle-auth');
     const authForm = document.getElementById('auth-form');
     
+    // 旧的登录/注册按钮已移除（在新菜单栏中处理）
     if (loginBtn) loginBtn.addEventListener('click', showLoginForm);
     if (registerBtn) registerBtn.addEventListener('click', showRegisterForm);
     if (logoutBtn) logoutBtn.addEventListener('click', logout);
@@ -70,6 +74,100 @@ function bindEvents() {
     }
 }
 
+// 头部菜单栏事件处理
+function bindHeaderEvents() {
+    // 搜索功能
+    const searchInput = document.getElementById('search-posts');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const keyword = searchInput.value.trim();
+                if (keyword) {
+                    searchStories(keyword);
+                }
+            }
+        });
+    }
+    
+    // 用户中心
+    const userMenu = document.getElementById('menu-user');
+    if (userMenu) {
+        userMenu.addEventListener('click', () => {
+            if (currentUser) {
+                showUserCenter();
+            } else {
+                showLoginForm();
+            }
+        });
+    }
+    
+    // 通知中心
+    const notificationsMenu = document.getElementById('menu-notifications');
+    if (notificationsMenu) {
+        notificationsMenu.addEventListener('click', () => {
+            showNotificationCenter();
+        });
+    }
+}
+
+// 搜索故事
+function searchStories(keyword) {
+    if (!keyword) {
+        renderStories();
+        return;
+    }
+    
+    const filtered = allStories.filter(story => 
+        story.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        story.content.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    console.log(`🔍 搜索结果: 找到 ${filtered.length} 个故事`);
+    renderStoriesFromList(filtered);
+    showToast(`🔍 找到 ${filtered.length} 个相关故事`, 'info');
+}
+
+// 从指定列表渲染故事
+function renderStoriesFromList(stories) {
+    const container = document.getElementById('stories-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (stories.length === 0) {
+        container.innerHTML = '<div class="loading-text">🔍 没有找到相关故事</div>';
+        return;
+    }
+    
+    container.innerHTML = stories.map(story => {
+        return '<div class="story-item" onclick="showStoryDetail(' + story.id + ')">' +
+            '<div class="story-title">👻 ' + escapeHtml(story.title) + '</div>' +
+            '<div class="story-meta">' +
+            '<span>👁️ ' + story.views + '</span>' +
+            '<span>💬 ' + story.comments_count + '</span>' +
+            '<span>📸 ' + story.evidence_count + '</span>' +
+            '</div>' +
+            '<div class="story-preview">' + escapeHtml(story.content.substring(0, 80)) + '</div>' +
+            '<div class="story-footer">' +
+            '<span>' + (story.ai_persona || '🤖 AI') + '</span>' +
+            '<span>' + formatDate(story.created_at) + '</span>' +
+            '</div>' +
+            '</div>';
+    }).join('');
+}
+
+// 显示用户中心
+function showUserCenter() {
+    showToast('👤 用户中心功能开发中...', 'info');
+    // TODO: 实现用户中心窗口
+}
+
+// 显示通知中心
+function showNotificationCenter() {
+    showToast('📬 通知中心功能开发中...', 'info');
+    // TODO: 实现通知中心窗口
+}
+
 async function loadStories(silent = false, page = 1) {
     try {
         const response = await fetch(`${API_BASE}/stories?page=${page}&per_page=8`);
@@ -88,8 +186,13 @@ async function loadStories(silent = false, page = 1) {
         
         lastStoryCount = pagination.total;
         
+        // 更新统计信息
         const countEl = document.getElementById('story-count');
         if (countEl) countEl.textContent = pagination.total;
+        
+        // 更新最后更新时间
+        const lastUpdateEl = document.getElementById('last-update');
+        if (lastUpdateEl) lastUpdateEl.textContent = '刚刚';
         
         renderStories();
         renderPagination();

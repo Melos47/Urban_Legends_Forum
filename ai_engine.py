@@ -719,10 +719,155 @@ def generate_evidence_image(story_title, story_content, comment_context=""):
         traceback.print_exc()
         return None
 
-def generate_evidence_audio(text_content):
-    """生成诡异现场环境音频（合成的诡异音效，不是朗诵）"""
+def generate_audio_description_with_lm_studio(title, content, comment_context=""):
+    """使用 LM Studio 生成丰富的音频场景描述，增加多样性"""
+    try:
+        import subprocess
+        import json
+        
+        lm_studio_url = os.getenv('LM_STUDIO_URL', 'http://localhost:1234/v1')
+        
+        # 构造 prompt，让 AI 根据故事生成音频场景描述
+        system_prompt = """你是一个音频场景专家。根据给定的故事内容，生成一个简短的、生动的音频环境描述。
+        
+描述应该包括:
+1. 主要的声音元素 (1-2 个)
+2. 声音的特征 (急促/缓慢/重复/变化等)
+3. 总体的情绪氛围
+
+返回格式: 单行文本，不超过 100 字
+
+示例:
+"地下隧道中的空洞回声，伴随着规律的敲击声，节奏诡异，令人不安"
+"微弱的人类呼吸声混合着低频嗡鸣，像有无形的东西在身边"
+"""
+
+        user_prompt = f"""故事标题: {title}
+
+故事内容: {content[:200]}
+
+用户评论: {comment_context[:150]}
+
+请生成这个故事对应的音频场景描述。"""
+
+        # 使用 curl 调用 LM Studio
+        curl_command = [
+            'curl', '-s', f'{lm_studio_url}/chat/completions',
+            '-H', 'Content-Type: application/json',
+            '-d', json.dumps({
+                'model': 'qwen2.5-7b-instruct-1m',
+                'messages': [
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': user_prompt}
+                ],
+                'temperature': 0.7,
+                'max_tokens': 150,
+                'top_p': 0.9
+            })
+        ]
+        
+        result = subprocess.run(curl_command, capture_output=True, text=True, timeout=10)
+        
+        if result.returncode == 0:
+            try:
+                response_data = json.loads(result.stdout)
+                audio_description = response_data['choices'][0]['message']['content'].strip()
+                print(f"[generate_audio_description] ✅ AI 生成音频描述: {audio_description[:60]}...")
+                return audio_description
+            except (json.JSONDecodeError, KeyError, IndexError) as e:
+                print(f"[generate_audio_description] JSON 解析失败: {e}")
+                return None
+        else:
+            print(f"[generate_audio_description] curl 调用失败: {result.stderr}")
+            return None
+            
+    except Exception as e:
+        print(f"[generate_audio_description] 错误: {e}")
+        return None
+
+def extract_audio_keywords(title, content, comment_context=""):
+    """提取音频相关关键词 - 返回音频类型和参数"""
+    
+    # 音频关键词映射表 (关键词 -> (音频类型, 频率参数, 强度))
+    audio_keywords = {
+        # 敲击/脚步相关 - 优先级高，要先检查
+        '敲门|敲击|脚步|踩踏|走动|跺脚': ('knocking', 'rhythmic_pulse', 0.5),
+        
+        # 机械/电子 - 优先级高
+        '灯闪烁|电流|闪烁|嗡鸣|警报|断断续续|电器': ('electronic', 'flicker_buzz', 0.5),
+        
+        # 地铁/隧道/空间
+        '地铁|隧道|地下|回声': ('subway', 'hollow_echo', 0.5),
+        
+        # 声音/人声相关 - 低吟、呻吟、尖叫等
+        '呻吟|尖叫|哭声|喘气|呼吸|低吟|呢喃|嗓音|人声': ('voice', 'strange_voice', 0.6),
+        
+        # 自然/环境声
+        '风|树|雨|水|流动': ('nature', 'wind_whisper', 0.4),
+        '沙沙|窸窣|簌簌': ('ambient', 'static_whisper', 0.3),
+        
+        # 时间关键词（影响整体气氛但不直接决定音频类型）
+        '夜晚|凌晨|午夜|深夜|晚上': ('nocturnal', 'ambient_eerie', 0.6),
+        
+        # 诡异/恐怖总体印象（最低优先级）
+        '诡异|怪异|恐怖|害怕|不安|诡|鬼|灵异|灵': ('eerie', 'ambient_eerie', 0.7),
+    }
+    
+    # 合并所有文本用于匹配
+    combined_text = f"{title} {content} {comment_context}".lower()
+    
+    # 默认音频类型
+    audio_type = 'ambient_eerie'
+    intensity = 0.5
+    
+    # 按优先级查找匹配的关键词（先定义的优先级最高）
+    for keywords, (category, audio_type_matched, intensity_matched) in audio_keywords.items():
+        # 检查是否有任何关键词匹配
+        has_match = False
+        matched_keyword = ""
+        
+        for kw in keywords.split('|'):
+            kw = kw.strip()
+            if kw and kw in combined_text:
+                has_match = True
+                matched_keyword = kw
+                break
+        
+        if has_match:
+            audio_type = audio_type_matched
+            intensity = intensity_matched
+            print(f"[extract_audio_keywords] 匹配到关键词: '{matched_keyword}' -> {audio_type}")
+            break  # 优先级最高的匹配就跳出
+    
+    return audio_type, intensity
+
+def generate_evidence_audio(text_content, story_context=""):
+    """生成诡异现场环境音频 - 根据内容生成对应的微妙怪异声音"""
     try:
         print(f"[generate_evidence_audio] 生成诡异现场环境音频...")
+        
+        # 首先尝试使用 LM Studio 生成音频描述
+        full_context = f"{text_content}\n{story_context}"
+        ai_audio_description = generate_audio_description_with_lm_studio(
+            text_content, 
+            story_context.split('\n')[0] if story_context else "",  # 取故事内容前几行
+            story_context
+        )
+        
+        # 提取音频关键词 - 同时考虑 AI 生成的描述和原始内容
+        if ai_audio_description:
+            # 如果 AI 生成了描述，优先使用 AI 描述中的关键词
+            audio_type, intensity = extract_audio_keywords(
+                text_content, 
+                ai_audio_description,  # 使用 AI 生成的描述
+                story_context
+            )
+            print(f"[generate_evidence_audio] 使用 AI 生成的描述进行关键词提取")
+        else:
+            # 否则使用原始内容进行关键词提取
+            audio_type, intensity = extract_audio_keywords(text_content, story_context)
+        
+        print(f"[generate_evidence_audio] 音频类型: {audio_type}, 强度: {intensity}")
         
         try:
             import numpy as np
@@ -733,55 +878,156 @@ def generate_evidence_audio(text_content):
             
             # 生成诡异环境音频的多个层次
             sample_rate = 22050  # 22kHz采样率
-            duration = 1.5  # 1.5秒音频
+            duration = 2.0  # 2秒音频
             
             # 创建基础音频数据
             t = np.linspace(0, duration, int(sample_rate * duration))
             
-            # 层1: 低频嗡鸣声（诡异氛围，像人声的"呃"音）
-            low_freq_buzz = 0.15 * np.sin(2 * np.pi * 45 * t)
+            # 根据audio_type生成不同类型的声音
+            if audio_type == 'voice' or audio_type == 'strange_voice':
+                # 人声嗡鸣 - 微妙的人类声音幻听
+                # 每次生成不同的基础频率和特征，增加多样性
+                base_freq = np.random.choice([70, 80, 90, 100, 110, 120])  # 更多频率选择
+                layer1 = 0.12 * intensity * np.sin(2 * np.pi * base_freq * t)
+                
+                # 变调的低吟 - 随机的变调范围和速度
+                modulation_depth = np.random.randint(15, 35)  # 变调深度变化
+                modulation_speed = np.random.uniform(0.3, 0.8)  # 变调速度变化
+                freq_modulation = base_freq + modulation_depth * np.sin(2 * np.pi * modulation_speed * t)
+                layer2 = 0.08 * intensity * np.sin(2 * np.pi * freq_modulation * t)
+                
+                # 微弱的呼吸声 - 不同的呼吸节奏
+                breath_freq = np.random.uniform(0.8, 1.5)  # 呼吸频率变化
+                breath_env = signal.square(2 * np.pi * breath_freq * t) * 0.5 + 0.5
+                breath_tone_freq = np.random.randint(120, 200)  # 呼吸音的基频变化
+                layer3 = 0.06 * intensity * breath_env * np.sin(2 * np.pi * breath_tone_freq * t)
+                
+                audio_data = layer1 + layer2 + layer3
+                
+            elif audio_type == 'knocking' or audio_type == 'rhythmic_pulse':
+                # 敲击/脚步声 - 不同的节奏和音色
+                pulse_freq = np.random.uniform(1.0, 2.5)  # 更宽的脉冲频率范围
+                pulse_envelope = signal.square(2 * np.pi * pulse_freq * t) * 0.5 + 0.5
+                
+                # 低频敲击声 - 不同的敲击音色
+                low_freq = np.random.choice([60, 70, 80, 90, 100])  # 多种敲击频率
+                layer1 = 0.15 * intensity * pulse_envelope * np.sin(2 * np.pi * low_freq * t)
+                
+                # 高频响应 - 不同的响应频率
+                high_freq = np.random.choice([150, 180, 200, 250, 300])  # 多种响应频率
+                layer2 = 0.08 * intensity * pulse_envelope * np.sin(2 * np.pi * high_freq * t)
+                
+                # 环境反响 - 增加变化
+                white_noise = 0.06 * intensity * np.random.normal(0, 1, len(t))
+                white_noise = signal.lfilter([1, 1], [1], white_noise) / 2
+                
+                audio_data = layer1 + layer2 + white_noise
+                
+            elif audio_type == 'wind_whisper' or audio_type == 'static_whisper':
+                # 风声/沙沙声 - 微妙而诡异，多种风格
+                wind_noise = 0.08 * intensity * np.random.normal(0, 1, len(t))
+                wind_noise = signal.lfilter([1, 2, 1], [1, 0, 0], wind_noise) / 4
+                
+                # 添加变调的高频 - 随机高频范围
+                base_whisper_freq = np.random.choice([600, 700, 800, 900, 1000, 1100])
+                modulation_range = np.random.randint(150, 300)
+                freq_modulation = base_whisper_freq + modulation_range * np.sin(2 * np.pi * np.random.uniform(0.2, 0.5) * t)
+                whisper = 0.04 * intensity * np.sin(2 * np.pi * freq_modulation * t)
+                
+                audio_data = wind_noise + whisper
+                
+            elif audio_type == 'hollow_echo':
+                # 地铁/隧道 - 空洞的回声，多种空间感
+                # 随机的基础频率营造不同的空间大小感觉
+                base_freq = np.random.choice([180, 200, 220, 240])
+                modulation = 20 + np.random.randint(20, 40)
+                base_freq_mod = base_freq + modulation * np.sin(2 * np.pi * np.random.uniform(0.3, 0.5) * t)
+                layer1 = 0.12 * intensity * np.sin(2 * np.pi * base_freq_mod * t)
+                
+                # 延迟的回声 - 不同的延迟时间营造不同的空间感
+                delay_time = np.random.uniform(0.08, 0.15)  # 延迟时间变化
+                delay_samples = int(delay_time * sample_rate)
+                layer2 = np.zeros_like(t)
+                if delay_samples < len(layer1):
+                    layer2[delay_samples:] = 0.06 * intensity * layer1[:-delay_samples]
+                
+                # 深沉的嗡鸣 - 不同的低频
+                low_freq = np.random.choice([50, 55, 60, 65])
+                layer3 = 0.08 * intensity * np.sin(2 * np.pi * low_freq * t)
+                
+                audio_data = layer1 + layer2 + layer3
+                
+            elif audio_type == 'electrical_hum' or audio_type == 'flicker_buzz':
+                # 电流/闪烁 - 断断续续的嗡鸣，多种风格
+                buzz_freq = np.random.choice([110, 120, 130, 140])  # 不同的电流频率
+                buzz = 0.12 * intensity * np.sin(2 * np.pi * buzz_freq * t)
+                
+                # 闪烁效果 - 不同的闪烁速度
+                flicker_speed = np.random.uniform(2.5, 5.0)
+                flicker_env = signal.square(2 * np.pi * flicker_speed * t) * 0.5 + 0.5
+                layer2 = 0.08 * intensity * flicker_env * buzz
+                
+                # 高频失真 - 不同的失真频率
+                distortion_freq = np.random.choice([1500, 1800, 2000, 2500, 3000])
+                layer3 = 0.04 * intensity * np.sin(2 * np.pi * distortion_freq * t) * flicker_env
+                
+                audio_data = layer2 + layer3
+                
+            else:  # 默认: ambient_eerie
+                # 环境诡异感 - 多层次的微妙不安，更多随机变化
+                # 层1: 低频嗡鸣声（诡异氛围），多种频率选择
+                low_freq = np.random.choice([35, 40, 45, 50, 55])
+                low_freq_buzz = 0.12 * intensity * np.sin(2 * np.pi * low_freq * t)
+                
+                # 层2: 间歇性的高频尖叫声，多种频率组合
+                scream_freqs = [
+                    [700, 1000, 1400],
+                    [600, 950, 1350],
+                    [750, 1100, 1500],
+                    [650, 1050, 1450]
+                ]
+                selected_freqs = np.random.choice([i for i in range(len(scream_freqs))])
+                scream_freqs = scream_freqs[selected_freqs]
+                
+                screams = np.zeros_like(t)
+                scream_speed = np.random.uniform(1.5, 3.0)  # 尖叫速度变化
+                for freq in scream_freqs:
+                    envelope = signal.square(2 * np.pi * scream_speed * t) * 0.5 + 0.5
+                    screams += 0.05 * intensity * envelope * np.sin(2 * np.pi * freq * t)
+                
+                # 层3: 白噪声（环境背景音） - 基于故事内容的不同种子
+                np.random.seed(hash(full_context) % 2**32)
+                white_noise = 0.08 * intensity * np.random.normal(0, 1, len(t))
+                white_noise = signal.lfilter([1, 2, 1], [1, 0, 0], white_noise) / 4
+                
+                # 层4: 诡异的脉冲音 - 不同脉冲频率
+                pulse_freq = np.random.uniform(1.2, 2.5)
+                pulse_envelope = signal.square(2 * np.pi * pulse_freq * t) * 0.5 + 0.5
+                pulse_base_freq = np.random.choice([100, 120, 150, 180])
+                pulse = 0.08 * intensity * pulse_envelope * np.sin(2 * np.pi * pulse_base_freq * t)
+                
+                audio_data = low_freq_buzz + screams + white_noise + pulse
             
-            # 层2: 间歇性的高频尖叫声（如风或诡异音）
-            scream_freqs = [800, 1200, 1600]
-            screams = np.zeros_like(t)
-            for freq in scream_freqs:
-                envelope = signal.square(2 * np.pi * 2.5 * t) * 0.5 + 0.5
-                screams += 0.08 * envelope * np.sin(2 * np.pi * freq * t)
-            
-            # 层3: 白噪声（环境背景音）
-            np.random.seed(42)
-            white_noise = 0.12 * np.random.normal(0, 1, len(t))
-            white_noise = signal.lfilter([1, 2, 1], [1, 0, 0], white_noise) / 4
-            
-            # 层4: 诡异的脉冲音（如心跳或敲击声）
-            pulse_freq = 2
-            pulse_envelope = signal.square(2 * np.pi * pulse_freq * t) * 0.5 + 0.5
-            pulse = 0.1 * pulse_envelope * np.sin(2 * np.pi * 150 * t)
-            
-            # 组合所有层
-            audio_data = low_freq_buzz + screams + white_noise + pulse
-            
-            # 添加动态变化（恐怖感）
+            # 添加动态变化（恐怖感渐进）
             envelope = np.ones_like(t)
             mid_point = len(envelope) // 2
-            envelope[:mid_point] = np.linspace(0.3, 1.0, mid_point)
-            # 计算后半部分的确切长度，避免广播错误
+            envelope[:mid_point] = np.linspace(0.2, 0.95, mid_point)
             second_half_len = len(envelope) - mid_point
-            envelope[mid_point:] = np.linspace(1.0, 0.6, second_half_len)
-            envelope[mid_point:] += 0.1 * np.random.normal(0, 1, second_half_len)
+            envelope[mid_point:] = np.linspace(0.95, 0.5, second_half_len)
+            envelope[mid_point:] += 0.08 * np.random.normal(0, 1, second_half_len)
             
             audio_data *= envelope
             
-            # 规范化音量（防止失真）
+            # 规范化音量（防止失真）- 保持微妙
             max_val = np.max(np.abs(audio_data))
             if max_val > 0:
-                audio_data = (audio_data / max_val) * 0.95
+                audio_data = (audio_data / max_val) * 0.85  # 降低整体音量使其更微妙
             
             # 转换为16位PCM格式
             audio_int16 = np.int16(audio_data * 32767)
             
             # 保存为WAV文件
-            wav_filename = f"eerie_sound_{timestamp}.wav"
+            wav_filename = f"eerie_sound_{audio_type}_{timestamp}.wav"
             wav_filepath = f"static/generated/{wav_filename}"
             wavfile.write(wav_filepath, sample_rate, audio_int16)
             
@@ -799,19 +1045,51 @@ def generate_evidence_audio(text_content):
                 
                 duration = 3000  # 3秒
                 noise = WhiteNoise().to_audio_segment(duration=duration)
-                noise = noise - 35  # 降低音量
+                noise = noise - (38 - intensity * 10)  # 根据强度调整音量
                 
-                # 添加随机的诡异音效
-                for _ in range(random.randint(4, 7)):
-                    pos = random.randint(0, duration - 500)
-                    freq = random.randint(300, 1000)  # 诡异频率
-                    tone_duration = random.randint(150, 500)
-                    tone = Sine(freq).to_audio_segment(duration=tone_duration)
-                    tone = tone - 28
-                    noise = noise.overlay(tone, position=pos)
+                # 根据audio_type生成对应的音效
+                if audio_type == 'voice' or audio_type == 'strange_voice':
+                    # 人声幻听
+                    base_freq = random.choice([80, 95, 110])
+                    for _ in range(3):
+                        pos = random.randint(0, duration - 800)
+                        tone = Sine(base_freq).to_audio_segment(duration=random.randint(400, 800))
+                        noise = noise.overlay(tone - 20, position=pos)
+                        
+                elif audio_type == 'knocking' or audio_type == 'rhythmic_pulse':
+                    # 敲击声
+                    for i in range(5):
+                        pos = int(i * duration / 5)
+                        tone = Sine(100).to_audio_segment(duration=150)
+                        noise = noise.overlay(tone - 15, position=pos)
+                        
+                elif audio_type == 'wind_whisper' or audio_type == 'static_whisper':
+                    # 风声/沙沙 - 已由白噪声表现，只需调整音量
+                    noise = noise - 5
+                    
+                elif audio_type == 'hollow_echo':
+                    # 地铁回声
+                    for _ in range(3):
+                        pos = random.randint(0, duration - 600)
+                        tone = Sine(200).to_audio_segment(duration=600)
+                        noise = noise.overlay(tone - 22, position=pos)
+                        
+                elif audio_type == 'electrical_hum' or audio_type == 'flicker_buzz':
+                    # 电流嗡鸣
+                    hum = Sine(120).to_audio_segment(duration=duration)
+                    noise = noise.overlay(hum - 25, position=0)
+                    
+                else:
+                    # 默认环境诡异感
+                    for _ in range(random.randint(4, 7)):
+                        pos = random.randint(0, duration - 500)
+                        freq = random.randint(400, 1200)
+                        tone_duration = random.randint(150, 500)
+                        tone = Sine(freq).to_audio_segment(duration=tone_duration)
+                        noise = noise.overlay(tone - 28, position=pos)
                 
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"eerie_audio_{timestamp}.mp3"
+                filename = f"eerie_audio_{audio_type}_{timestamp}.mp3"
                 filepath = f"static/generated/{filename}"
                 
                 noise.export(filepath, format="mp3", bitrate="64k")
@@ -845,6 +1123,24 @@ def generate_ai_response(story, user_comment):
             import subprocess
             import json
             
+            # 获取该故事下之前的AI回复，维持对话连贯性
+            from models import Comment
+            previous_ai_responses = Comment.query.filter_by(
+                story_id=story.id,
+                is_ai_response=True
+            ).order_by(Comment.created_at.desc()).limit(3).all()
+            
+            # 构建历史对话上下文
+            history_context = ""
+            if previous_ai_responses:
+                history_parts = []
+                for prev_comment in reversed(previous_ai_responses):  # 按时间顺序
+                    # 清理回复内容（去掉【楼主回复】标记）
+                    clean_reply = prev_comment.content.replace("【楼主回复】", "").strip()
+                    history_parts.append(f"- {clean_reply}")
+                history_context = "\n".join(history_parts)
+                print(f"[generate_ai_response] 找到 {len(previous_ai_responses)} 条历史回复")
+            
             system_prompt = """你是"楼主"，这个都市传说帖子的发起人。
 
 ⚠️ 重要：直接输出回复内容，不要输出思考过程，不要使用<think>标签。
@@ -860,6 +1156,7 @@ def generate_ai_response(story, user_comment):
 3. 提供新的进展或细节（但不要完全解释清楚）
 4. 可以提出反问或寻求建议
 5. 保持神秘和紧张感
+6. **保持与之前回复的一致性，不要前后矛盾**
 
 回复要求：
 - 1-3句话，简短有力
@@ -867,7 +1164,22 @@ def generate_ai_response(story, user_comment):
 - 直接回复，不要加"【楼主回复】"前缀
 - 不要输出思考过程，直接给出最终回复内容"""
 
-            user_prompt = f"""我的帖子标题：{story.title}
+            # 用户提示词 - 包含历史回复以保持一致性
+            if history_context:
+                user_prompt = f"""我的帖子标题：{story.title}
+
+我的情况：
+{story.content[:200]}...
+
+我之前的回复：
+{history_context}
+
+网友评论：
+{user_comment.content}
+
+请以楼主身份回复这条评论。保持与之前回复的一致性，不要前后矛盾。直接给出回复内容。"""
+            else:
+                user_prompt = f"""我的帖子标题：{story.title}
 
 我的情况：
 {story.content[:200]}...
@@ -884,7 +1196,7 @@ def generate_ai_response(story, user_comment):
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                "temperature": 0.8,
+                "temperature": 0.6,  # 降低温度以提高一致性（原0.8）
                 "max_tokens": 200
             }
             
@@ -1045,22 +1357,35 @@ def generate_ai_response(story, user_comment):
         return random.choice(responses)
     
     try:
-        # Create context-aware response
+        # 获取历史AI回复以保持一致性（OpenAI/Anthropic fallback分支）
+        from models import Comment
+        previous_ai_responses = Comment.query.filter_by(
+            story_id=story.id,
+            is_ai_response=True
+        ).order_by(Comment.created_at.desc()).limit(3).all()
+        
+        history_context = ""
+        if previous_ai_responses:
+            history_parts = [f"- {c.content.replace('【楼主回复】', '').strip()}" 
+                           for c in reversed(previous_ai_responses)]
+            history_context = f"\n\n我之前的回复：\n" + "\n".join(history_parts)
+        
+        # Create context-aware response with history
         prompt = f"""你是故事"{story.title}"的讲述者（{story.ai_persona}）。
 
 故事摘要：
-{story.content[:300]}...
+{story.content[:300]}...{history_context}
 
 用户评论：
 {user_comment.content}
 
-作为故事的讲述者，请用1-3句话回复用户的评论。你可以：
+作为故事的讲述者，请用1-3句话回复用户的评论。保持与之前回复的一致性。你可以：
 1. 透露更多细节或线索
 2. 表达恐惧或担忧
 3. 提出新的疑问
 4. 描述后续发展
 
-保持神秘感和紧张氛围，不要完全揭示真相。"""
+保持神秘感和紧张氛围，不要完全揭示真相，不要前后矛盾。"""
 
         model = os.getenv('AI_MODEL', 'gpt-4-turbo-preview')
         
@@ -1068,7 +1393,7 @@ def generate_ai_response(story, user_comment):
             response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.8,
+                temperature=0.6,  # 降低温度以提高一致性
                 max_tokens=200
             )
             return response.choices[0].message.content
@@ -1076,6 +1401,7 @@ def generate_ai_response(story, user_comment):
             response = anthropic_client.messages.create(
                 model="claude-3-haiku-20240307",
                 max_tokens=200,
+                temperature=0.6,  # 降低温度以提高一致性
                 messages=[{"role": "user", "content": prompt}]
             )
             return response.content[0].text

@@ -37,20 +37,35 @@
             overflow-x: hidden;
         }
         
+        /* 头部菜单栏 */
         .menubar {
             background: linear-gradient(180deg, #c0c0c0, #a0a0a0);
             border-bottom: 2px solid;
             border-bottom-color: #ffffff;
             border-right: 1px solid var(--border-dark);
-            padding: 2px 4px;
+            padding: 4px 8px;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
             gap: 20px;
             box-shadow: inset 1px 1px 0 var(--border-light), inset -1px -1px 0 var(--border-darker);
             position: sticky;
             top: 0;
             z-index: 100;
+            height: 32px;
+        }
+        
+        .menubar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+        
+        .menubar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
         .menu-item {
@@ -59,30 +74,52 @@
             color: var(--text-dark);
             padding: 2px 4px;
             user-select: none;
+            cursor: pointer;
         }
         
-        .main-container {
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .search-box input {
+            width: 150px;
+            padding: 2px 4px;
+            font-size: 11px;
+            border: 1px solid var(--border-dark);
+        }
+        
+        /* 主容器 - 2列布局 */
+        .main-wrapper {
             width: 100%;
-            height: calc(100vh - 20px);
+            height: calc(100vh - 32px);
+            display: flex;
             background-color: var(--bg-dark);
         }
         
-        .main-container td {
-            background-color: var(--bg-dark);
-        }
-        
-        .sidebar, .sidebar-right {
+        /* 左侧栏 */
+        .sidebar {
+            width: 200px;
             padding: 10px;
             background-color: var(--bg-dark);
             overflow-y: auto;
-            width: 180px;
+            border-right: 2px solid;
+            border-right-color: var(--border-light);
+            box-shadow: inset -1px 0 0 var(--border-darker);
         }
         
+        /* 右侧内容区 */
         .main-content {
+            flex: 1;
             padding: 10px;
             background-color: var(--bg-dark);
             overflow-y: auto;
-            flex: 1;
             display: flex;
             flex-direction: column;
         }
@@ -594,29 +631,35 @@
         }
         
         @media (max-width: 1024px) {
-            .main-container td {
-                display: block;
-                width: 100% !important;
-                border-bottom: 2px solid var(--border-dark);
+            .sidebar {
+                width: 150px;
+                font-size: 10px;
             }
-            .sidebar, .sidebar-right {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            .main-content {
-                width: 100%;
+            .search-box input {
+                width: 100px;
             }
         }
         
         @media (max-width: 768px) {
-            body {
-                font-size: 10px;
+            .main-wrapper {
+                flex-direction: column;
             }
-            .page-title {
-                font-size: 14px;
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 2px solid;
+                border-bottom-color: var(--border-light);
+                box-shadow: inset 0 -1px 0 var(--border-darker);
             }
-            .evidence-grid {
-                grid-template-columns: 1fr;
+            .main-content {
+                width: 100%;
+            }
+            .search-box {
+                display: none;
+            }
+            .menubar-right {
+                gap: 10px;
             }
         }
         
@@ -634,95 +677,92 @@
 
 <!-- Mac OS 3 风格菜单栏 -->
 <div class="menubar">
-    <div class="menu-item" id="menu-clock">12:00:00</div>
+    <div class="menubar-left">
+        <div class="menu-item" id="menu-clock">12:00:00</div>
+    </div>
+    <div class="menubar-right">
+        <!-- 搜索帖子 -->
+        <div class="search-box">
+            <label style="font-size: 11px; font-weight: bold;">🔍 搜索:</label>
+            <input type="text" id="search-posts" placeholder="输入关键词..." style="width: 150px; padding: 2px 4px; font-size: 11px;">
+        </div>
+        
+        <!-- 用户中心 -->
+        <div class="menu-item" id="menu-user" style="cursor: pointer;">👤 用户</div>
+        
+        <!-- 消息通知 -->
+        <div class="menu-item" id="menu-notifications" style="cursor: pointer; position: relative;">
+            📬 通知
+            <span id="notification-badge" style="position: absolute; top: -5px; right: -8px; background: #8b0000; color: white; border-radius: 50%; width: 16px; height: 16px; display: none; font-size: 9px; line-height: 16px; text-align: center;">0</span>
+        </div>
+    </div>
 </div>
 
-<!-- 主容器 -->
-<table class="main-container" cellpadding="0" cellspacing="0" border="0" width="100%">
-    <tr>
-        <!-- 左侧栏 - 分类和用户 -->
-        <td class="sidebar" valign="top">
-            <!-- 分类窗口 -->
-            <div class="macos3-window">
-                <div class="window-titlebar">
-                    <span class="titlebar-buttons">
-                        <span class="btn-close">●</span>
-                        <span class="btn-minimize">●</span>
-                        <span class="btn-maximize">●</span>
-                    </span>
-                    <span class="titlebar-text">档案分类</span>
-                </div>
-                <div class="window-content">
-                    <div class="category-list">
-                        <div class="category-item active" data-category="all">
-                            <span class="category-icon">📂</span>
-                            <span class="category-label">全部档案</span>
-                        </div>
-                        <div class="category-item" data-category="subway_ghost">
-                            <span class="category-icon">🚇</span>
-                            <span class="category-label">地铁灵异</span>
-                        </div>
-                        <div class="category-item" data-category="abandoned_building">
-                            <span class="category-icon">🏚️</span>
-                            <span class="category-label">废弃建筑</span>
-                        </div>
-                        <div class="category-item" data-category="cursed_object">
-                            <span class="category-icon">🗿</span>
-                            <span class="category-label">诅咒物品</span>
-                        </div>
-                        <div class="category-item" data-category="missing_person">
-                            <span class="category-icon">👤</span>
-                            <span class="category-label">失踪案件</span>
-                        </div>
+<!-- 主容器 - 2列布局 -->
+<div class="main-wrapper">
+    <!-- 左侧栏 - 分类和档案统计 -->
+    <div class="sidebar">
+        <!-- 分类窗口 -->
+        <div class="macos3-window">
+            <div class="window-titlebar">
+                <span class="titlebar-buttons">
+                    <span class="btn-close">●</span>
+                    <span class="btn-minimize">●</span>
+                    <span class="btn-maximize">●</span>
+                </span>
+                <span class="titlebar-text">档案分类</span>
+            </div>
+            <div class="window-content">
+                <div class="category-list">
+                    <div class="category-item active" data-category="all">
+                        <span class="category-icon">📂</span>
+                        <span class="category-label">全部档案</span>
+                    </div>
+                    <div class="category-item" data-category="subway_ghost">
+                        <span class="category-icon">🚇</span>
+                        <span class="category-label">地铁灵异</span>
+                    </div>
+                    <div class="category-item" data-category="abandoned_building">
+                        <span class="category-icon">🏚️</span>
+                        <span class="category-label">废弃建筑</span>
+                    </div>
+                    <div class="category-item" data-category="cursed_object">
+                        <span class="category-icon">🗿</span>
+                        <span class="category-label">诅咒物品</span>
+                    </div>
+                    <div class="category-item" data-category="missing_person">
+                        <span class="category-icon">👤</span>
+                        <span class="category-label">失踪案件</span>
+                    </div>
+                    <div class="category-item" data-category="time_anomaly">
+                        <span class="category-icon">⏰</span>
+                        <span class="category-label">时空异常</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- 用户窗口 -->
-            <div class="macos3-window" style="margin-top: 15px;">
-                <div class="window-titlebar">
-                    <span class="titlebar-buttons">
-                        <span class="btn-close">●</span>
-                        <span class="btn-minimize">●</span>
-                        <span class="btn-maximize">●</span>
-                    </span>
-                    <span class="titlebar-text">用户</span>
-                </div>
-                <div class="window-content">
-                    <div id="guest-view">
-                        <button class="macos3-button" id="login-btn">登 录</button>
-                        <button class="macos3-button" id="register-btn">注 册</button>
-                    </div>
-                    <div id="user-view" style="display: none;">
-                        <div class="user-card">
-                            <div id="user-avatar" class="user-avatar">👻</div>
-                            <div id="user-name" class="user-name">User</div>
-                        </div>
-                        <button class="macos3-button" id="logout-btn">登 出</button>
-                    </div>
-                </div>
+        <!-- 档案统计窗口 -->
+        <div class="macos3-window" style="margin-top: 15px;">
+            <div class="window-titlebar">
+                <span class="titlebar-buttons">
+                    <span class="btn-close">●</span>
+                    <span class="btn-minimize">●</span>
+                    <span class="btn-maximize">●</span>
+                </span>
+                <span class="titlebar-text">档案统计</span>
             </div>
-
-            <!-- 统计窗口 -->
-            <div class="macos3-window" style="margin-top: 15px;">
-                <div class="window-titlebar">
-                    <span class="titlebar-buttons">
-                        <span class="btn-close">●</span>
-                        <span class="btn-minimize">●</span>
-                        <span class="btn-maximize">●</span>
-                    </span>
-                    <span class="titlebar-text">档案统计</span>
-                </div>
-                <div class="window-content">
-                    <p class="stat-item">📊 总档案数: <span id="story-count">0</span></p>
-                    <p class="stat-item">👥 在线用户: 1</p>
-                    <p class="stat-item">⏰ 最后更新: 刚刚</p>
-                </div>
+            <div class="window-content">
+                <p class="stat-item">📊 总档案数: <span id="story-count">0</span></p>
+                <p class="stat-item">💬 总评论数: <span id="comment-count">0</span></p>
+                <p class="stat-item">👥 在线用户: <span id="user-count">1</span></p>
+                <p class="stat-item">⏰ 最后更新: <span id="last-update">刚刚</span></p>
             </div>
-        </td>
+        </div>
+    </div>
 
-        <!-- 中间内容区 -->
-        <td class="main-content" valign="top">
+    <!-- 右侧主内容区 -->
+    <div class="main-content">
             <!-- 标题窗口 -->
             <div class="macos3-window">
                 <div class="window-titlebar active">
@@ -760,66 +800,9 @@
                     <div id="pagination-container" style="margin-top: 10px;"></div>
                 </div>
             </div>
-        </td>
-
-        <!-- 右侧栏 - 信息和通知 -->
-        <td class="sidebar-right" valign="top">
-            <!-- 最新更新窗口 -->
-            <div class="macos3-window">
-                <div class="window-titlebar">
-                    <span class="titlebar-buttons">
-                        <span class="btn-close">●</span>
-                        <span class="btn-minimize">●</span>
-                        <span class="btn-maximize">●</span>
-                    </span>
-                    <span class="titlebar-text">最新更新</span>
-                </div>
-                <div class="window-content">
-                    <div class="update-item">⚡ 系统已启动</div>
-                    <div class="update-item">🎃 AI楼主开始发帖</div>
-                    <div class="update-item">📸 证据不断更新中</div>
-                    <div class="update-item">💬 评论数在增加</div>
-                </div>
-            </div>
-
-            <!-- 通知窗口 -->
-            <div class="macos3-window" style="margin-top: 15px;">
-                <div class="window-titlebar">
-                    <span class="titlebar-buttons">
-                        <span class="btn-close">●</span>
-                        <span class="btn-minimize">●</span>
-                        <span class="btn-maximize">●</span>
-                    </span>
-                    <span class="titlebar-text">系统通知</span>
-                </div>
-                <div class="window-content">
-                    <div id="notification-list">
-                        <p class="notification-empty">📪 暂无通知</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 关于窗口 -->
-            <div class="macos3-window" style="margin-top: 15px;">
-                <div class="window-titlebar">
-                    <span class="titlebar-buttons">
-                        <span class="btn-close">●</span>
-                        <span class="btn-minimize">●</span>
-                        <span class="btn-maximize">●</span>
-                    </span>
-                    <span class="titlebar-text">关于本站</span>
-                </div>
-                <div class="window-content">
-                    <p class="about-text">🚀 完全本地 AI 驱动</p>
-                    <p class="about-text">💾 SQLite 数据库</p>
-                    <p class="about-text">🤖 LM Studio 文字生成</p>
-                    <p class="about-text">🎨 Stable Diffusion 作图</p>
-                    <p class="about-text">🔊 Google TTS 配音</p>
-                </div>
-            </div>
-        </td>
-    </tr>
-</table>
+        </div>
+    </div>
+</div>
 
 <!-- 页脚 -->
 <div class="footer">
