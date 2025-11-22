@@ -1041,7 +1041,7 @@ def delayed_ai_response(story_id, comment_id, delay_seconds=60):
                 story_id=story_id,
                 comment_id=ai_comment.id,
                 notification_type='ai_reply',
-                content=f'AI楼主回复了你在 "{story.title}" 中的评论。'
+                content=f'楼主(@{story.ai_persona})回复了你在 "{story.title}" 中的评论。'
             )
             db.session.add(notification)
             
