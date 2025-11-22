@@ -687,6 +687,9 @@ function changePage(page) {
 
 async function showStoryDetail(storyId) {
     try {
+        // 保存当前故事ID到全局变量
+        window.currentStoryId = storyId;
+        
         const response = await fetch(API_BASE + '/stories/' + storyId);
         const story = await response.json();
         
@@ -734,12 +737,54 @@ async function showStoryDetail(storyId) {
         html += '<div class="comment-section"><h3 style="color: #6b0080; border-bottom: 2px dashed #6b0080; padding-bottom: 8px;">💬 评论</h3>';
         
         if (story.comments && story.comments.length > 0) {
+            // 构建评论树结构
+            const commentMap = {};
+            const topLevelComments = [];
+            
+            // 第一遍：创建所有评论的映射
             story.comments.forEach(c => {
-                html += '<div id="comment-' + c.id + '" class="comment-item">' +
-                    '<div class="comment-author">' + escapeHtml(c.author.username) + ' ' + c.author.avatar + '</div>' +
-                    '<div class="comment-text">' + escapeHtml(c.content) + '</div>' +
-                    '<div class="comment-time">' + formatDate(c.created_at) + '</div>' +
+                commentMap[c.id] = {...c, replies: []};
+            });
+            
+            // 第二遍：构建树结构
+            story.comments.forEach(c => {
+                if (c.parent_id && commentMap[c.parent_id]) {
+                    commentMap[c.parent_id].replies.push(commentMap[c.id]);
+                } else {
+                    topLevelComments.push(commentMap[c.id]);
+                }
+            });
+            
+            // 渲染评论树
+            const renderComment = (comment, isReply = false) => {
+                const indent = isReply ? 'margin-left: 20px; border-left: 2px solid #ccc; padding-left: 10px;' : '';
+                let commentHtml = '<div id="comment-' + comment.id + '" class="comment-item" style="' + indent + '">' +
+                    '<div class="comment-author">' + escapeHtml(comment.author.username) + ' ' + comment.author.avatar + '</div>' +
+                    '<div class="comment-text">' + escapeHtml(comment.content) + '</div>' +
+                    '<div class="comment-time">' + formatDate(comment.created_at);
+                
+                // 添加回复按钮（如果未封贴且用户已登录）
+                const isLocked = story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'));
+                if (!isLocked && currentUser) {
+                    commentHtml += ' <a href="#" onclick="showReplyBox(' + comment.id + ', \'' + escapeHtml(comment.author.username) + '\'); return false;" style="color: #6b0080; font-size: 10px; margin-left: 10px;">回复</a>';
+                }
+                
+                commentHtml += '</div>' +
+                    '<div id="reply-box-' + comment.id + '" style="display: none; margin-top: 8px;"></div>' +
                     '</div>';
+                
+                // 渲染子回复
+                if (comment.replies && comment.replies.length > 0) {
+                    comment.replies.forEach(reply => {
+                        commentHtml += renderComment(reply, true);
+                    });
+                }
+                
+                return commentHtml;
+            };
+            
+            topLevelComments.forEach(c => {
+                html += renderComment(c);
             });
         }
         
@@ -777,6 +822,103 @@ async function showStoryDetail(storyId) {
     } catch (error) {
         console.error('加载故事详情失败:', error);
         showToast('加载失败', 'error');
+    }
+}
+
+function showReplyBox(commentId, authorName) {
+    // 隐藏其他回复框
+    document.querySelectorAll('[id^="reply-box-"]').forEach(box => {
+        if (box.id !== 'reply-box-' + commentId) {
+            box.style.display = 'none';
+        }
+    });
+    
+    const replyBox = document.getElementById('reply-box-' + commentId);
+    if (!replyBox) return;
+    
+    // 切换显示/隐藏
+    if (replyBox.style.display === 'none' || !replyBox.innerHTML) {
+        replyBox.innerHTML = '<form onsubmit="submitReply(event, ' + commentId + ')" style="margin-top: 8px;">' +
+            '<div style="color: #666; font-size: 10px; margin-bottom: 4px;">回复 @' + escapeHtml(authorName) + ':</div>' +
+            '<textarea id="reply-text-' + commentId + '" placeholder="输入回复..." style="width:100%; height:50px; padding:6px; border:2px inset #999; font-size:10px; resize:none; font-family: MS Sans Serif, Arial;"></textarea>' +
+            '<div style="margin-top: 6px;">' +
+            '<button type="submit" class="macos3-button" style="font-size: 10px; padding: 4px 12px;">发送</button> ' +
+            '<button type="button" onclick="hideReplyBox(' + commentId + ')" class="macos3-button" style="font-size: 10px; padding: 4px 12px;">取消</button>' +
+            '</div></form>';
+        replyBox.style.display = 'block';
+        document.getElementById('reply-text-' + commentId).focus();
+    } else {
+        replyBox.style.display = 'none';
+    }
+}
+
+function hideReplyBox(commentId) {
+    const replyBox = document.getElementById('reply-box-' + commentId);
+    if (replyBox) {
+        replyBox.style.display = 'none';
+    }
+}
+
+async function submitReply(event, parentCommentId) {
+    event.preventDefault();
+    if (!currentUser) {
+        showToast('请先登录', 'warning');
+        return;
+    }
+    
+    const replyText = document.getElementById('reply-text-' + parentCommentId);
+    const content = replyText ? replyText.value.trim() : '';
+    
+    if (!content) {
+        showToast('不能为空', 'warning');
+        return;
+    }
+    
+    // 从URL或当前打开的故事中获取storyId
+    const storyModal = document.getElementById('story-modal');
+    const storyTitle = document.getElementById('story-title');
+    if (!storyModal || storyModal.style.display === 'none') {
+        showToast('错误：无法获取故事ID', 'error');
+        return;
+    }
+    
+    // 从comment元素中获取storyId（通过API重新获取）
+    const commentElement = document.getElementById('comment-' + parentCommentId);
+    if (!commentElement) {
+        showToast('错误：评论不存在', 'error');
+        return;
+    }
+    
+    // 从当前打开的故事详情中获取storyId
+    const storyId = window.currentStoryId;
+    if (!storyId) {
+        showToast('错误：无法获取故事ID', 'error');
+        return;
+    }
+    
+    try {
+        const res = await fetch(API_BASE + '/stories/' + storyId + '/comments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ 
+                content: content,
+                parent_id: parentCommentId
+            })
+        });
+        
+        if (res.ok) {
+            showToast('已回复', 'success');
+            setTimeout(() => showStoryDetail(storyId), 1500);
+        } else {
+            const err = await res.json();
+            showToast(err.error || '回复失败', 'error');
+        }
+    } catch (error) {
+        console.error('发表回复失败:', error);
+        showToast('错误', 'error');
     }
 }
 

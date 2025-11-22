@@ -53,8 +53,12 @@ class Comment(db.Model):
     content = db.Column(db.Text, nullable=False)
     story_id = db.Column(db.Integer, db.ForeignKey('story.id'), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)  # 回复的评论ID
     is_ai_response = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 关系
+    parent = db.relationship('Comment', remote_side=[id], backref='replies')
     
 class Evidence(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -267,8 +271,8 @@ def generate_contextual_comment(story_title, story_content, existing_comments):
 
 def maybe_add_fake_comment(story_id):
     """有概率为故事添加1-2条虚假用户评论（增加互动感）"""
-    # 40% 的概率添加虚假评论（提高概率）
-    if random.random() > 0.4:
+    # 50% 的概率添加虚假评论（提高概率）
+    if random.random() > 0.5:
         return
     
     # 随机添加1-2条评论
@@ -285,26 +289,93 @@ def maybe_add_fake_comment(story_id):
     for _ in range(num_comments):
         fake_user = get_or_create_fake_user()
         
+        # 30%概率回复AI楼主的评论
+        parent_comment = None
+        if existing_comments and random.random() < 0.3:
+            ai_comments = [c for c in existing_comments if c.is_ai_response]
+            if ai_comments:
+                parent_comment = random.choice(ai_comments)
+        
         # 生成与故事相关的评论
-        comment_content = generate_contextual_comment(
-            story.title,
-            story.content,
-            existing_comments
-        )
+        if parent_comment:
+            # 简短回复AI
+            reply_templates = [
+                "楼主说得对...",
+                "我也这么觉得",
+                "楼主保重！",
+                "楼主小心点",
+                "希望楼主平安",
+                "楼主后续呢？"
+            ]
+            comment_content = random.choice(reply_templates)
+        else:
+            comment_content = generate_contextual_comment(
+                story.title,
+                story.content,
+                existing_comments
+            )
         
         fake_comment = Comment(
             content=comment_content,
             story_id=story_id,
             author_id=fake_user.id,
+            parent_id=parent_comment.id if parent_comment else None,
             is_ai_response=False
         )
         
         db.session.add(fake_comment)
         existing_comments.append(fake_comment)  # 更新列表避免后续重复
         
-        print(f"[fake_comment] 为故事 {story_id} ({story.title[:20]}) 添加了虚假评论: {comment_content}")
+        if parent_comment:
+            print(f"[fake_comment] 虚拟用户 {fake_user.username} 回复了楼主: {comment_content}")
+        else:
+            print(f"[fake_comment] 为故事 {story_id} ({story.title[:20]}) 添加了虚假评论: {comment_content}")
     
     db.session.commit()
+
+def maybe_add_fake_reply(story_id, parent_comment):
+    """虚拟用户有40%概率回复其他评论"""
+    if random.random() > 0.4:
+        return
+    
+    # 不要回复自己
+    if parent_comment.author and parent_comment.author.username.startswith('user_'):
+        return
+    
+    story = Story.query.get(story_id)
+    if not story:
+        return
+    
+    fake_user = get_or_create_fake_user()
+    
+    # 生成简短回复（针对评论内容）
+    reply_templates = [
+        "我也遇到过类似的情况...",
+        "这也太诡异了吧！",
+        "楼主保重！",
+        "有点吓人啊",
+        "真的假的？",
+        "我觉得你应该离开那里",
+        "建议报警",
+        "不会吧不会吧...",
+        "细思极恐",
+        "这种事情真的存在吗？"
+    ]
+    
+    reply_content = random.choice(reply_templates)
+    
+    fake_reply = Comment(
+        content=reply_content,
+        story_id=story_id,
+        author_id=fake_user.id,
+        parent_id=parent_comment.id,
+        is_ai_response=False
+    )
+    
+    db.session.add(fake_reply)
+    db.session.commit()
+    
+    print(f"[fake_reply] 虚拟用户 {fake_user.username} 回复了评论 #{parent_comment.id}: {reply_content}")
 
 def init_default_stories():
     """初始化默认的三个故事（如果数据库为空）"""
@@ -530,6 +601,7 @@ def get_story(story_id):
             'id': c.id,
             'content': c.content,
             'is_ai_response': c.is_ai_response,
+            'parent_id': c.parent_id,
             'author': {
                 'id': c.author.id if c.author else None,
                 'username': c.author.username if c.author else (story.ai_persona if c.is_ai_response else 'AI'),
@@ -553,10 +625,13 @@ def add_comment(story_id):
     if story.current_state == 'locked' or '【已封贴】' in story.title:
         return jsonify({'error': '该帖子已封贴，无法评论'}), 403
     
+    parent_id = data.get('parent_id')  # 获取父评论ID（如果是回复）
+    
     comment = Comment(
         content=data.get('content'),
         story_id=story_id,
         author_id=user_id,
+        parent_id=parent_id,
         is_ai_response=False
     )
     
@@ -578,6 +653,15 @@ def add_comment(story_id):
         args=(story_id, comment.id, 5),  # 5秒延迟（测试）
         daemon=True
     ).start()
+    
+    # 如果是顶级评论，尝试添加虚拟用户评论（40%概率）
+    if not parent_id:
+        maybe_add_fake_comment(story_id)
+    # 如果是回复，虚拟用户有30%概率也回复
+    elif parent_id:
+        parent_comment = Comment.query.get(parent_id)
+        if parent_comment:
+            maybe_add_fake_reply(story_id, parent_comment)
     
     # 检查是否达到证据生成阈值（只统计用户评论，不包括AI回复）
     user_comment_count = Comment.query.filter_by(story_id=story_id, is_ai_response=False).count()
@@ -935,10 +1019,17 @@ def delayed_ai_response(story_id, comment_id, delay_seconds=60):
         print(f"[delayed_ai_response] AI回复生成完成: {ai_response[:50]}..." if ai_response else "[delayed_ai_response] AI回复为空!")
         
         if ai_response:
+            # 判断是否是回复虚拟用户（简短回复）
+            is_fake_user_reply = comment.author and comment.author.username.startswith('user_')
+            if is_fake_user_reply and len(ai_response) > 100:
+                # 截短AI回复给虚拟用户
+                ai_response = ai_response[:80] + '...'
+            
             ai_comment = Comment(
                 content=ai_response,
                 story_id=story_id,
                 author_id=None,
+                parent_id=comment.id,  # 设置父评论ID
                 is_ai_response=True
             )
             db.session.add(ai_comment)

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>证据显示诊断</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .story-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .evidence-item {
+            border: 2px solid #ddd;
+            padding: 10px;
+            background: #fafafa;
+        }
+        .evidence-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .status.ok { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 30px; }
+        .info { color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 证据显示诊断工具</h1>
+    <p class="info">此页面用于诊断证据是否正确显示</p>
+    
+    <div id="diagnostics"></div>
+    
+    <script>
+        async function runDiagnostics() {
+            const container = document.getElementById('diagnostics');
+            
+            // 测试所有AI生成的故事
+            const storiesResponse = await fetch('/api/stories?per_page=20');
+            const storiesData = await storiesResponse.json();
+            const stories = storiesData.stories || storiesData;
+            
+            let html = '<h2>📊 所有帖子的证据状态</h2>';
+            
+            for (const story of stories.filter(s => s.id <= 15)) {
+                // 获取完整故事详情
+                const detailResponse = await fetch(`/api/stories/${story.id}`);
+                const detail = await detailResponse.json();
+                
+                const evidenceCount = (detail.evidence || []).length;
+                const commentCount = (detail.comments || []).filter(c => !c.is_ai_response).length;
+                
+                html += `<div class="story-card">`;
+                html += `<h3>故事 #${story.id}: ${detail.title}</h3>`;
+                html += `<p class="info">评论数: ${commentCount} | 证据数: ${evidenceCount}</p>`;
+                
+                if (evidenceCount > 0) {
+                    html += `<div class="evidence-grid">`;
+                    
+                    for (const e of detail.evidence) {
+                        html += `<div class="evidence-item">`;
+                        html += `<p><strong>证据 #${e.id}</strong></p>`;
+                        html += `<p class="info">路径: ${e.file_path}</p>`;
+                        
+                        // 尝试加载图片
+                        html += `<img src="${e.file_path}" 
+                            onerror="this.parentElement.innerHTML += '<p class=\\"status error\\">图片加载失败</p>'"
+                            onload="this.parentElement.innerHTML += '<p class=\\"status ok\\">图片加载成功</p>'">`;
+                        html += `<p class="info">${e.description}</p>`;
+                        html += `</div>`;
+                    }
+                    
+                    html += `</div>`;
+                } else if (commentCount >= 2 && commentCount % 2 === 0) {
+                    html += `<p class="status error">⚠️ 应该生成证据但还没有</p>`;
+                } else {
+                    html += `<p class="info">等待更多评论触发证据生成 (需要 ${2 - (commentCount % 2)} 条评论)</p>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // 页面加载时运行诊断
+        runDiagnostics();
+        
+        // 每30秒刷新一次
+        setInterval(runDiagnostics, 30000);
+    </script>
+</body>
+</html>
