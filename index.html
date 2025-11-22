@@ -105,10 +105,11 @@
         
         /* 左侧栏 */
         .sidebar {
-            width: 200px;
+            width: 280px;
             padding: 10px;
-            background-color: var(--bg-dark);
-            overflow-y: auto;
+            margin-left: 80px;
+            background-color: #393934;
+            overflow-y: visible;
             border-right: 2px solid;
             border-right-color: var(--border-light);
             box-shadow: inset -1px 0 0 var(--border-darker);
@@ -118,8 +119,9 @@
         .main-content {
             flex: 1;
             padding: 10px;
+            margin-right: 80px;
             background-color: var(--bg-dark);
-            overflow-y: auto;
+            overflow-y: visible;
             display: flex;
             flex-direction: column;
         }
@@ -152,7 +154,7 @@
         }
         
         .window-titlebar {
-            background: linear-gradient(90deg, #000080, #1084d7);
+            background-color: #676746;
             color: var(--text-light);
             padding: 2px 2px 2px 4px;
             display: flex;
@@ -200,14 +202,14 @@
         }
         
         .window-content {
-            background-color: var(--bg-content);
+            background-color: #393934;
             color: var(--text-dark);
             padding: 8px;
             border: 1px solid;
             border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
             font-size: 11px;
             flex: 1;
-            overflow: hidden;
+            overflow: visible;
         }
         
         .window-content.scrollable {
@@ -236,7 +238,8 @@
         
         .category-item {
             padding: 6px 8px;
-            background-color: var(--bg-content);
+            background-color: #393934;
+            color: #ffffff;
             border: 1px solid;
             border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
             cursor: pointer;
@@ -252,8 +255,8 @@
         }
         
         .category-item.active {
-            background: linear-gradient(90deg, #000080, #1084d7);
-            color: var(--text-light);
+            background-color: #BBC373;
+            color: var(--text-dark);
             border-color: #1084d7 #000080 #000080 #1084d7;
             box-shadow: inset 1px 1px 0 #4080ff;
         }
@@ -453,7 +456,7 @@
             margin: 4px 0;
             border-bottom: 1px dotted var(--border-dark);
             font-size: 11px;
-            color: var(--text-dark);
+            color: var(--text-light);
         }
         
         .update-item {
@@ -734,10 +737,7 @@
                         <span class="category-icon">👤</span>
                         <span class="category-label">失踪案件</span>
                     </div>
-                    <div class="category-item" data-category="time_anomaly">
-                        <span class="category-icon">⏰</span>
-                        <span class="category-label">时空异常</span>
-                    </div>
+                    <!-- '时空异常' category removed from UI -->
                 </div>
             </div>
         </div>
@@ -775,8 +775,8 @@
                         <button id="notification-filter-button" class="macos3-button" data-value="all" style="background:#111; color:#fff; border:1px solid rgba(255,255,255,0.06); padding:6px 10px; font-size:12px; min-width:140px; display:flex; justify-content:space-between; align-items:center; gap:8px;">全部 <span style="opacity:0.8; font-size:12px;">▾</span></button>
                         <div id="notification-filter-menu" style="display:none; position:absolute; top:calc(100% + 6px); right:0; background:#111; border:1px solid rgba(255,255,255,0.06); min-width:160px; z-index:2800; box-shadow:0 6px 12px rgba(0,0,0,0.6);">
                             <div class="notif-filter-option" data-value="all" style="padding:8px; color:#fff; cursor:pointer;">全部</div>
-                            <div class="notif-filter-option" data-value="7days" style="padding:8px; color:#fff; cursor:pointer;">过去 7 天</div>
-                            <div class="notif-filter-option" data-value="30days" style="padding:8px; color:#fff; cursor:pointer;">过去 30 天</div>
+                            <div class="notif-filter-option" data-value="comment" style="padding:8px; color:#fff; cursor:pointer;">评论</div>
+                            <div class="notif-filter-option" data-value="evidence" style="padding:8px; color:#fff; cursor:pointer;">图片/声音证据</div>
                         </div>
                     </div>
                     <button id="notification-markall" class="macos3-button" style="font-size:11px;">全部已读</button>

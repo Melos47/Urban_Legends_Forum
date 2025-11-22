@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>证据显示测试</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .evidence-item { border: 1px solid #999; padding: 10px; margin: 10px 0; }
+        img { max-width: 400px; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <h1>证据显示测试</h1>
+    <p>测试从API获取证据并在网页中显示</p>
+    
+    <h2>故事 #1: 旧收音机的阴霾</h2>
+    <div id="evidence-container"></div>
+    
+    <h2>故事 #5: 旧屋里来的神秘来电</h2>
+    <div id="evidence-container-2"></div>
+    
+    <script>
+        async function loadAndDisplayEvidence(storyId, containerId) {
+            try {
+                const response = await fetch('/api/stories/' + storyId);
+                const story = await response.json();
+                
+                console.log('故事:', story.title);
+                console.log('证据数:', story.evidence.length);
+                console.log('证据数据:', story.evidence);
+                
+                const container = document.getElementById(containerId);
+                
+                if (story.evidence.length === 0) {
+                    container.innerHTML = '<p>没有证据</p>';
+                    return;
+                }
+                
+                let html = '';
+                story.evidence.forEach((e, i) => {
+                    html += '<div class="evidence-item">';
+                    html += '<h3>证据 #' + (i+1) + '</h3>';
+                    html += '<p>类型: ' + (e.type || e.evidence_type) + '</p>';
+                    html += '<p>路径: ' + e.file_path + '</p>';
+                    
+                    if (e.type === 'image' || e.evidence_type === 'image') {
+                        html += '<img src="' + e.file_path + '" alt="证据' + (i+1) + '" onerror="this.src=\'error.png\'; console.error(\'图片加载失败:\', this.src)">';
+                    } else if (e.type === 'audio') {
+                        html += '<audio controls><source src="' + e.file_path + '"></audio>';
+                    }
+                    
+                    html += '<p>描述: ' + e.description + '</p>';
+                    html += '</div>';
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('加载失败:', error);
+                document.getElementById(containerId).innerHTML = '<p>加载失败: ' + error.message + '</p>';
+            }
+        }
+        
+        loadAndDisplayEvidence(1, 'evidence-container');
+        loadAndDisplayEvidence(5, 'evidence-container-2');
+    </script>
+</body>
+</html>

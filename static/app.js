@@ -17,6 +17,9 @@ let pagination = null;
 let notificationsCache = [];
 let notifPerPage = 6;
 let notifCurrentPage = 1;
+// 在线用户数缓存（避免每次完全随机）
+let cachedOnlineUsers = Math.floor(Math.random() * 13) + 3; // 初始3-15人
+
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('✨ 都市传说档案馆已加载');
@@ -189,6 +192,24 @@ async function loadStories(silent = false, page = 1) {
         // 更新统计信息
         const countEl = document.getElementById('story-count');
         if (countEl) countEl.textContent = pagination.total;
+        
+        // 计算总评论数（所有故事的评论数之和）
+        const totalComments = data.stories.reduce((sum, story) => sum + (story.comments_count || 0), 0);
+        const commentCountEl = document.getElementById('comment-count');
+        if (commentCountEl) {
+            // 添加一些随机的基础评论数，使其看起来更真实（300-600之间）
+            const baseComments = Math.floor(Math.random() * 300) + 300;
+            commentCountEl.textContent = totalComments + baseComments;
+        }
+        
+        // 模拟在线用户数（小幅波动，避免完全随机）
+        const userCountEl = document.getElementById('user-count');
+        if (userCountEl) {
+            // 每次刷新时，在线用户数有±2的小幅波动
+            const fluctuation = Math.floor(Math.random() * 5) - 2; // -2到+2
+            cachedOnlineUsers = Math.max(3, Math.min(15, cachedOnlineUsers + fluctuation)); // 保持在3-15范围内
+            userCountEl.textContent = cachedOnlineUsers;
+        }
         
         // 更新最后更新时间
         const lastUpdateEl = document.getElementById('last-update');
@@ -464,18 +485,14 @@ function getFilteredNotifications() {
     const filterBtn = document.getElementById('notification-filter-button');
     const mode = (filterBtn && filterBtn.dataset && filterBtn.dataset.value) ? filterBtn.dataset.value : 'all';
     if (!notificationsCache || notificationsCache.length === 0) return [];
+    
+    // 按通知分类过滤（全部/评论/证据）
     if (mode === 'all') return notificationsCache.slice();
-
-    const now = Date.now();
-    let cutoff = 0;
-    if (mode === '7days') cutoff = now - (7 * 24 * 3600 * 1000);
-    if (mode === '30days') cutoff = now - (30 * 24 * 3600 * 1000);
-
+    
+    // 按 notification_category 过滤
     return notificationsCache.filter(n => {
-        try {
-            const t = new Date(n.created_at).getTime();
-            return t >= cutoff;
-        } catch (e) { return false; }
+        const category = n.notification_category || 'comment';
+        return category === mode;
     });
 }
 
@@ -501,8 +518,22 @@ function renderNotificationListPage() {
         item.style.background = n.is_read ? 'transparent' : 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))';
         item.style.cursor = 'pointer';
 
-        const contentHtml = '<div style="font-size:12px; color:#fff;">' + escapeHtml(n.content) + '</div>' +
-            '<div style="font-size:10px; color:#ccc; margin-top:6px;">' + formatDate(n.created_at) + '</div>';
+        // 获取通知分类标签
+        const category = n.notification_category || 'comment';
+        let categoryLabel = '📝 评论';
+        let categoryColor = '#88ccff';
+        if (category === 'evidence') {
+            categoryLabel = '🎬 证据';
+            categoryColor = '#ffaa66';
+        }
+
+        const contentHtml = '<div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">' +
+            '<div style="flex:1;">' +
+            '<div style="font-size:12px; color:#fff;">' + escapeHtml(n.content) + '</div>' +
+            '<div style="font-size:10px; color:#ccc; margin-top:6px;">' + formatDate(n.created_at) + '</div>' +
+            '</div>' +
+            '<div style="font-size:9px; background:' + categoryColor + '20; color:' + categoryColor + '; padding:2px 6px; border-radius:3px; white-space:nowrap;">' + categoryLabel + '</div>' +
+            '</div>';
         item.innerHTML = contentHtml;
 
         item.addEventListener('click', async () => {
@@ -528,12 +559,46 @@ function renderNotificationPagination() {
         return;
     }
 
-    let html = '';
-    html += '<button class="macos3-button" ' + (notifCurrentPage <= 1 ? 'disabled style="opacity:0.5;"' : 'onclick="changeNotifPage(' + (notifCurrentPage - 1) + ')"') + '>◀</button>';
-    html += '<span style="color:#fff; margin:0 8px;">第 ' + notifCurrentPage + ' / ' + pages + ' 页</span>';
-    html += '<button class="macos3-button" ' + (notifCurrentPage >= pages ? 'disabled style="opacity:0.5;"' : 'onclick="changeNotifPage(' + (notifCurrentPage + 1) + ')"') + '>▶</button>';
+    // Clear existing content
+    paginationEl.innerHTML = '';
 
-    paginationEl.innerHTML = html;
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'macos3-button';
+    prevBtn.textContent = '◀';
+    if (notifCurrentPage <= 1) {
+        prevBtn.disabled = true;
+        prevBtn.style.opacity = '0.5';
+    } else {
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            changeNotifPage(notifCurrentPage - 1);
+        });
+    }
+
+    // Page info
+    const pageInfo = document.createElement('span');
+    pageInfo.style.color = '#fff';
+    pageInfo.style.margin = '0 8px';
+    pageInfo.textContent = '第 ' + notifCurrentPage + ' / ' + pages + ' 页';
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'macos3-button';
+    nextBtn.textContent = '▶';
+    if (notifCurrentPage >= pages) {
+        nextBtn.disabled = true;
+        nextBtn.style.opacity = '0.5';
+    } else {
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            changeNotifPage(notifCurrentPage + 1);
+        });
+    }
+
+    paginationEl.appendChild(prevBtn);
+    paginationEl.appendChild(pageInfo);
+    paginationEl.appendChild(nextBtn);
 }
 
 // global helper for pagination buttons
@@ -625,22 +690,40 @@ async function showStoryDetail(storyId) {
         const response = await fetch(API_BASE + '/stories/' + storyId);
         const story = await response.json();
         
+        // 调试信息
+        console.log('📖 故事详情加载:', story.title);
+        console.log('📸 证据数量:', story.evidence ? story.evidence.length : 0);
+        if (story.evidence && story.evidence.length > 0) {
+            console.log('📸 证据列表:', story.evidence);
+        }
+        
         const titleEl = document.getElementById('story-title');
         if (titleEl) titleEl.textContent = story.title;
         
         let html = '<div style="border-bottom: 2px dashed #6b0080; padding-bottom: 10px; margin-bottom: 10px;">' +
             '<div style="font-weight: bold; color: #6b0080;">作者: ' + (story.ai_persona || 'AI楼主') + ' 👻</div>' +
-            '<div style="font-size: 10px; color: #666; margin: 5px 0;">' + formatDate(story.created_at) + ' | 浏览: ' + story.views + '</div>' +
-            '<div style="white-space: pre-wrap; line-height: 1.6; word-break: break-all; font-size: 11px;">' + escapeHtml(story.content) + '</div>' +
+            '<div style="font-size: 10px; color: #666; margin: 5px 0;">' + formatDate(story.created_at) + ' | 浏览: ' + story.views + '</div>';
+        
+        // 显示封贴说明
+        if (story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'))) {
+            html += '<div style="border-top: 1px solid #999; border-bottom: 1px solid #999; padding: 8px 0; margin: 10px 0; text-align: center; color: #666; font-size: 10px;">' +
+                '本贴已超过1年无人回复，已封锁禁止回复' +
+                '</div>';
+        }
+        
+        html += '<div id="story-original-content" style="white-space: pre-wrap; line-height: 1.6; word-break: break-all; font-size: 11px;">' + escapeHtml(story.content) + '</div>' +
             '</div>';
         
         if (story.evidence && story.evidence.length > 0) {
+            console.log('✅ 开始渲染证据区域...');
             html += '<div class="evidence-section"><div class="evidence-title">📸 证据</div><div class="evidence-grid">';
             story.evidence.forEach(e => {
                 html += '<div class="evidence-item">';
-                if (e.type === 'image') {
+                // Check both 'type' and 'evidence_type' fields, default to 'image' if not specified
+                const evidenceType = e.type || e.evidence_type || 'image';
+                if (evidenceType === 'image') {
                     html += '<img src="' + e.file_path + '" style="width:100%; aspect-ratio: 1/1; object-fit: contain; background-color: #000; border: 1px solid #666;">';
-                } else {
+                } else if (evidenceType === 'audio') {
                     html += '<audio controls style="width:100%; height:30px;"><source src="' + e.file_path + '"></audio>';
                 }
                 html += '<div class="evidence-desc">' + escapeHtml(e.description) + '</div></div>';
@@ -660,7 +743,14 @@ async function showStoryDetail(storyId) {
             });
         }
         
-        if (currentUser) {
+        // 检查是否封贴
+        const isLocked = story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'));
+        
+        if (isLocked) {
+            html += '<div style="text-align: center; color: #999; padding: 20px; margin-top: 12px; border-top: 1px dotted #999;">' +
+                '<div style="font-size: 12px;">🔒 本帖已封锁，无法继续评论</div>' +
+                '</div>';
+        } else if (currentUser) {
             html += '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px dotted #999;">' +
                 '<form onsubmit="submitComment(event, ' + storyId + ')">' +
                 '<textarea id="comment-text" placeholder="你的看法..." style="width:100%; height:60px; padding:8px; border:2px inset #999; font-size:11px; resize:none; font-family: MS Sans Serif, Arial;"></textarea>' +
@@ -672,10 +762,18 @@ async function showStoryDetail(storyId) {
         
         html += '</div>';
         const contentEl = document.getElementById('story-content');
-        if (contentEl) contentEl.innerHTML = html;
+        if (contentEl) {
+            contentEl.innerHTML = html;
+            console.log('✅ 故事内容已渲染到模态框');
+        }
         
         const storyModal = document.getElementById('story-modal');
-        if (storyModal) storyModal.style.display = 'flex';
+        if (storyModal) {
+            storyModal.style.display = 'flex';
+            console.log('✅ 故事模态框已打开');
+            // 滚动到顶部
+            contentEl.scrollTop = 0;
+        }
     } catch (error) {
         console.error('加载故事详情失败:', error);
         showToast('加载失败', 'error');
