@@ -731,6 +731,7 @@ def get_notifications():
         'id': n.id,
         'content': n.content,
         'story_id': n.story_id,
+        'comment_id': n.comment_id,
         'is_read': n.is_read,
         'notification_type': n.notification_type,
         'notification_category': n.notification_category or 'comment',  # 返回分类，默认为 'comment'
