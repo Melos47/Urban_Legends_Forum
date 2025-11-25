@@ -86,6 +86,14 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class CategoryClick(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    click_count = db.Column(db.Integer, default=1)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    __table_args__ = (db.UniqueConstraint('user_id', 'category', name='_user_category_uc'),)
+
 # ============================================
 # 真实用户名生成函数
 # ============================================
@@ -775,6 +783,65 @@ def read_notifications():
     
     db.session.commit()
     return jsonify({'status': 'success'})
+
+
+@app.route('/api/track-category-click', methods=['POST'])
+def track_category_click():
+    """追踪用户点击的档案分类"""
+    token = request.headers.get('Authorization')
+    user_id = verify_token(token)
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    category = data.get('category')
+    
+    if not category:
+        return jsonify({'error': 'Category is required'}), 400
+    
+    # 查找或创建点击记录
+    click_record = CategoryClick.query.filter_by(user_id=user_id, category=category).first()
+    
+    if click_record:
+        click_record.click_count += 1
+        click_record.updated_at = datetime.utcnow()
+    else:
+        click_record = CategoryClick(user_id=user_id, category=category, click_count=1)
+        db.session.add(click_record)
+    
+    db.session.commit()
+    return jsonify({'status': 'success', 'click_count': click_record.click_count})
+
+
+@app.route('/api/user-top-categories', methods=['GET'])
+def get_user_top_categories():
+    """获取用户点击最多的两个分类，以及总点击数和总评论数"""
+    token = request.headers.get('Authorization')
+    user_id = verify_token(token)
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    # 查询用户点击最多的前两个分类
+    top_categories = CategoryClick.query.filter_by(user_id=user_id)\
+        .order_by(CategoryClick.click_count.desc())\
+        .limit(2)\
+        .all()
+    
+    # 计算总点击数 (Eyes)
+    total_clicks = db.session.query(db.func.sum(CategoryClick.click_count)).filter_by(user_id=user_id).scalar() or 0
+    
+    # 计算总评论数 (Mouths)
+    total_comments = Comment.query.filter_by(author_id=user_id).count()
+    
+    result = [{'category': cat.category, 'click_count': cat.click_count} for cat in top_categories]
+    
+    return jsonify({
+        'categories': result,
+        'stats': {
+            'total_clicks': total_clicks,
+            'total_comments': total_comments
+        }
+    })
 
 
 @app.route('/api/admin/reset_ai_stories', methods=['POST'])
