@@ -241,7 +241,7 @@
             background-color: #393934;
             color: #ffffff;
             border: 1px solid;
-            border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+            border-color: var(--border-light) var(--border-dark) var(--border-darker) var(--border-light);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -674,6 +674,795 @@
         .macos3-button:hover {
             animation: shine 1s infinite;
         }
+
+        /* ==================== 个人中心 Retro CRT 风格 ==================== */
+        .id-card-modal .macos3-dialog {
+            max-width: 900px;
+            background-color: #0E0E0C;
+            border-color: #2A2A28;
+        }
+
+        /* 视觉特效层 */
+        .retro-noise-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.08;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bW9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbm9pc2UpIiBvcGFjaXR5PSIxIi8+PC9zdmc+');
+        }
+
+        .retro-scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 3px;
+            z-index: 998;
+        }
+
+        .retro-crt-flicker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 997;
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        @keyframes crt-flicker {
+            0% { transform: translateY(0); opacity: 0.95; }
+            10% { opacity: 0.9; }
+            50% { opacity: 0.95; }
+            100% { transform: translateY(2px); opacity: 0.9; }
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .retro-main-container {
+            padding: 24px;
+            font-family: 'VT323', monospace;
+            color: #D4E69C;
+        }
+
+        .retro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px dashed rgba(212, 230, 156, 0.4);
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        .retro-title {
+            font-size: 40px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            text-shadow: 0 0 10px rgba(212, 230, 156, 0.5);
+        }
+
+        .retro-subtitle {
+            font-size: 12px;
+            letter-spacing: 0.15em;
+            opacity: 0.7;
+            display: flex;
+            gap: 8px;
+        }
+
+        .retro-status-online {
+            color: #D4E69C;
+            text-shadow: 0 0 8px #D4E69C;
+        }
+
+        .retro-battery {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .retro-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .retro-dot {
+            width: 8px;
+            height: 8px;
+            background: #D4E69C;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .retro-dot:nth-child(2) { opacity: 0.5; }
+        .retro-dot:nth-child(3) { opacity: 0.2; }
+
+        .retro-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 24px;
+        }
+
+        .retro-camera-container {
+            position: relative;
+            aspect-ratio: 1;
+            border: 1px solid #D4E69C;
+            padding: 4px;
+            background: #050805;
+        }
+
+        .retro-corner {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+        }
+
+        .retro-corner-tl { top: -1px; left: -1px; border-top: 2px solid #D4E69C; border-left: 2px solid #D4E69C; }
+        .retro-corner-tr { top: -1px; right: -1px; border-top: 2px solid #D4E69C; border-right: 2px solid #D4E69C; }
+        .retro-corner-bl { bottom: -1px; left: -1px; border-bottom: 2px solid #D4E69C; border-left: 2px solid #D4E69C; }
+        .retro-corner-br { bottom: -1px; right: -1px; border-bottom: 2px solid #D4E69C; border-right: 2px solid #D4E69C; }
+
+        .retro-camera-view {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background: black;
+        }
+
+        .retro-camera-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0.3;
+            background-image: radial-gradient(#D4E69C 1px, transparent 0);
+            background-size: 6px 6px;
+        }
+
+        .retro-camera-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated;
+            filter: contrast(150%) brightness(110%) grayscale(100%) sepia(100%) hue-rotate(60deg) saturate(600%);
+            mix-blend-mode: normal;
+            opacity: 0.9;
+        }
+
+        .retro-camera-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #050805;
+        }
+
+        .retro-camera-placeholder::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.6;
+            filter: contrast(150%) brightness(110%) grayscale(100%) sepia(100%) hue-rotate(60deg) saturate(600%);
+            background: url('https://images.unsplash.com/photo-1620066133895-6032877c30dc?q=80&w=500&auto=format&fit=crop') center/cover;
+        }
+
+        .retro-scan-icon {
+            width: 48px;
+            height: 48px;
+            color: #D4E69C;
+            animation: spin-slow 12s linear infinite;
+            z-index: 10;
+            margin-bottom: 8px;
+        }
+
+        .retro-no-signal {
+            color: #D4E69C;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 8px;
+            z-index: 10;
+            font-size: 14px;
+        }
+
+        .retro-camera-badges {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 30;
+            display: flex;
+            gap: 4px;
+        }
+
+        .retro-badge {
+            background: #D4E69C;
+            color: black;
+            font-size: 10px;
+            padding: 2px 4px;
+            font-weight: bold;
+        }
+
+        .retro-badge-yellow {
+            background: #D4E69C;
+            color: black;
+        }
+
+        .retro-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(212, 230, 156, 0.3);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .retro-codec-info {
+            font-size: 10px;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        .retro-button {
+            background: #D4E69C;
+            color: black;
+            padding: 8px 24px;
+            font-weight: bold;
+            font-size: 16px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(212, 230, 156, 0.4);
+            font-family: 'VT323', monospace;
+        }
+
+        .retro-button:hover {
+            background: #c0e000;
+            box-shadow: 0 0 25px rgba(212, 230, 156, 0.6);
+        }
+
+        .retro-mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .retro-mini-box {
+            border: 1px solid rgba(212, 230, 156, 0.4);
+            padding: 8px;
+            background: rgba(10, 5, 16, 0.5);
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .retro-fingerprint-icon {
+            width: 64px;
+            height: 64px;
+            color: rgba(212, 230, 156, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        .retro-mini-label {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            font-size: 8px;
+            color: #D4E69C;
+        }
+
+        .retro-motion-box {
+            border: 1px solid rgba(212, 230, 156, 0.4);
+            background: black;
+            position: relative;
+            overflow: hidden;
+            padding: 4px;
+            aspect-ratio: 1;
+        }
+
+        .retro-motion-gradient {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 80px;
+            background: linear-gradient(to top, #D4E69C, transparent);
+            opacity: 0.3;
+            animation: pulse 2s infinite;
+            filter: blur(4px);
+        }
+
+        .retro-motion-particles {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#D4E69C 1px, transparent 0);
+            background-size: 8px 8px;
+            opacity: 0.4;
+        }
+
+        .retro-circuit-map {
+            height: 224px;
+            border: 1px solid rgba(212, 230, 156, 0.5);
+            position: relative;
+            background: #030503;
+            overflow: hidden;
+        }
+
+        .retro-circuit-grid {
+            position: absolute;
+            inset: 0;
+            opacity: 0.2;
+            background-image: linear-gradient(90deg, #D4E69C 1px, transparent 1px),
+                              linear-gradient(180deg, #D4E69C 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .retro-circuit-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .retro-cpu-chip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid #D4E69C;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(212, 230, 156, 0.1);
+            box-shadow: 0 0 15px rgba(212, 230, 156, 0.3);
+        }
+
+        .retro-cpu-icon {
+            width: 40px;
+            height: 40px;
+            color: #D4E69C;
+            animation: pulse 2s infinite;
+        }
+
+        .retro-circuit-info {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            text-align: right;
+        }
+
+        .retro-circuit-label {
+            font-size: 12px;
+            color: #D4E69C;
+        }
+
+        .retro-circuit-temp {
+            font-size: 10px;
+            color: rgba(212, 230, 156, 0.7);
+        }
+
+        .retro-info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-top: 1px solid rgba(212, 230, 156, 0.3);
+            border-bottom: 1px solid rgba(212, 230, 156, 0.3);
+            padding: 16px 0;
+        }
+
+        .retro-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed rgba(212, 230, 156, 0.2);
+            padding-bottom: 4px;
+            padding-left: 8px;
+            padding-right: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .retro-info-row:hover {
+            background-color: rgba(212, 230, 156, 0.05);
+        }
+
+        .retro-info-label {
+            font-size: 18px;
+            opacity: 0.8;
+            letter-spacing: 0.1em;
+        }
+
+        .retro-info-value {
+            font-size: 20px;
+            letter-spacing: 0.15em;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(212, 230, 156, 0.4);
+        }
+
+        .retro-info-value-red {
+            color: #ff6b6b;
+            text-shadow: 0 0 8px red;
+        }
+
+        .retro-interest-box {
+            border: 1px solid rgba(212, 230, 156, 0.5);
+            padding: 16px;
+            background: rgba(10, 5, 16, 0.3);
+            border-radius: 0;
+        }
+
+        .retro-interest-title {
+            font-size: 14px;
+            color: #D4E69C;
+            margin-bottom: 4px;
+        }
+
+        .retro-interest-subtitle {
+            font-size: 10px;
+            color: rgba(212, 230, 156, 0.6);
+            letter-spacing: 0.05em;
+        }
+
+        .retro-interest-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .retro-interest-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .retro-interest-tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(212, 230, 156, 0.1);
+            border: 1px solid #D4E69C;
+            color: #D4E69C;
+            font-size: 14px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .retro-interest-tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 230, 156, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .retro-loading-tag {
+            opacity: 0.5;
+            animation: pulse 1.5s infinite;
+        }
+
+        .retro-no-data-tag {
+            opacity: 0.5;
+            font-style: italic;
+        }
+
+        .retro-interest-stats {
+            display: flex;
+            gap: 16px;
+        }
+
+        .retro-stat-item {
+            text-align: center;
+        }
+
+        .retro-stat-label {
+            font-size: 9px;
+            opacity: 0.6;
+        }
+
+        .retro-stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #D4E69C;
+            text-shadow: 0 0 8px rgba(212, 230, 156, 0.5);
+        }
+
+        .retro-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid rgba(212, 230, 156, 0.2);
+            padding-top: 8px;
+            margin-top: 24px;
+        }
+
+        .retro-skills-label {
+            font-size: 12px;
+        }
+
+        .retro-skills-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .retro-skill-icon {
+            border: 1px solid #D4E69C;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #D4E69C;
+            font-weight: bold;
+        }
+
+        /* Lila 风格控制面板 */
+        .lila-controls {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(10, 5, 16, 0.5);
+            border: 1px solid rgba(212, 230, 156, 0.3);
+        }
+
+        .lila-btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .lila-btn-sm {
+            flex: 1;
+            background: rgba(212, 230, 156, 0.2);
+            color: #D4E69C;
+            border: 1px solid #D4E69C;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-family: 'VT323', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lila-btn-sm:hover {
+            background: rgba(212, 230, 156, 0.3);
+        }
+
+        /* Who's Lila Theme & Camera Styles */
+        :root {
+            --lila-red: #ff3333;
+            --lila-dark: #050505;
+            --lila-border: #331111;
+            --lila-shadow: rgba(255, 50, 50, 0.2);
+        }
+
+        .lila-theme {
+            font-family: 'VT323', monospace !important;
+            color: var(--lila-red) !important;
+        }
+
+        /* 强制像素化渲染 */
+        canvas.lila-canvas {
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .lila-border {
+            border: 2px solid var(--lila-border);
+            box-shadow: 0 0 10px var(--lila-shadow);
+            background-color: var(--lila-dark);
+        }
+
+        /* CRT 扫描线效果 - 覆盖整个模态框 */
+        .lila-scanlines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.6;
+        }
+
+        /* 简单的闪烁动画 */
+        @keyframes lila-flicker {
+            0% { opacity: 0.95; }
+            5% { opacity: 0.8; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.5; }
+            20% { opacity: 0.95; }
+            100% { opacity: 0.95; }
+        }
+        
+        .lila-flicker-text {
+            animation: lila-flicker 4s infinite;
+        }
+
+        /* Range Input Style (Lila theme) */
+        input[type=range].lila-range {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Webkit (Chrome, Safari, Edge) */
+        input[type=range].lila-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 20px;
+            width: 10px;
+            background: var(--lila-red);
+            cursor: pointer;
+            margin-top: -8px;
+            border: 1px solid #000;
+            box-shadow: 0 0 8px var(--lila-shadow);
+        }
+
+        input[type=range].lila-range::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: var(--lila-border);
+            border-radius: 0;
+        }
+
+        /* Firefox */
+        input[type=range].lila-range::-moz-range-thumb {
+            height: 18px;
+            width: 8px;
+            background: var(--lila-red);
+            cursor: pointer;
+            border: 1px solid #000;
+            border-radius: 0;
+            box-shadow: 0 0 8px var(--lila-shadow);
+        }
+
+        input[type=range].lila-range::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            background: var(--lila-border);
+            border-radius: 0;
+        }
+
+        /* Button Groups */
+        .lila-btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .lila-btn-sm {
+            padding: 6px 12px;
+            background: rgba(51, 17, 17, 0.5);
+            border: 1px solid var(--lila-border);
+            color: var(--lila-red);
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lila-btn-sm:hover:not(:disabled) {
+            background: rgba(80, 20, 20, 0.7);
+            box-shadow: 0 0 10px var(--lila-shadow);
+        }
+
+        .lila-btn-sm:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Overrides for existing Retro styles to match Lila theme */
+        .id-card-modal .macos3-dialog {
+            background: #000 !important;
+            border: 2px solid var(--lila-border) !important;
+            box-shadow: 0 0 20px var(--lila-shadow) !important;
+        }
+        
+        .id-card-modal .retro-main-container {
+            background-color: #000 !important;
+            color: var(--lila-red) !important;
+            font-family: 'VT323', monospace !important;
+        }
+
+        .id-card-modal .retro-info-value {
+            color: var(--lila-red) !important;
+        }
+
+        .id-card-modal .retro-info-value-red {
+            color: #ff5555 !important;
+        }
+
+        .id-card-modal .retro-interest-tag {
+            background: rgba(80, 20, 20, 0.6) !important;
+            color: #ff7777 !important;
+            border: 1px solid #883333 !important;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: 'VT323', monospace;
+            letter-spacing: 1px;
+            text-shadow: 0 0 3px rgba(255, 50, 50, 0.4);
+        }
+
+        .id-card-modal .retro-loading-tag {
+            color: #ff8888 !important;
+            border-color: #884444 !important;
+        }
+
+        .id-card-modal .retro-no-data-tag {
+            color: #ff6666 !important;
+            border-color: #883333 !important;
+            background: rgba(60, 20, 20, 0.4) !important;
+        }
+
+        .lila-btn-action {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lila-btn-action:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--lila-red);
+            background: rgba(255, 50, 50, 0.2) !important;
+        }
+
+        .lila-btn-action:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 768px) {
+            .retro-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -899,6 +1688,123 @@
         </div>
         <div class="dialog-content scrollable" id="story-content">
             <p class="loading-text">加载中...</p>
+        </div>
+    </div>
+</div>
+
+<!-- 个人中心模态框 (Who's Lila Camera Interface) -->
+<div id="user-center-modal" class="modal-backdrop id-card-modal" style="display: none; align-items: center; justify-content: center;">
+    <!-- 视觉特效层 -->
+    <div class="retro-scanlines"></div>
+    <div class="retro-crt-flicker"></div>
+    <div class="retro-noise-layer"></div>
+    
+    <div class="macos3-dialog" style="z-index: 10; position: relative; max-height: 95vh; overflow: hidden;">
+        <div class="dialog-content" style="padding:0;">
+            <div class="id-card">
+                <div class="retro-main-container" style="display: flex; gap: 15px; padding: 15px; background: #000; height: auto; max-height: 85vh;">
+                    
+                    <!-- Left Column: Camera Interface -->
+                    <div style="flex: 2; display: flex; flex-direction: column;">
+                        <!-- Header -->
+                        <div style="margin-bottom: 10px; text-align: center;">
+                            <h1 class="lila-flicker-text" style="font-size: 24px; letter-spacing: 4px; color: var(--lila-red); margin: 0;">FACIAL RECOGNITION</h1>
+                            <p style="font-size: 10px; color: #522; margin-top: 2px;">DAEMON_V.1.0 // LOADING...</p>
+                        </div>
+
+                        <!-- Camera Container -->
+                        <div class="lila-border" style="width: 100%; background: #000; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                            <!-- Status Bar -->
+                            <div style="background: rgba(50,10,10,0.3); color: var(--lila-red); display: flex; justify-content: space-between; padding: 5px 10px; font-size: 12px; font-weight: bold; letter-spacing: 1px; border-bottom: 1px solid var(--lila-border);">
+                                <span>REC ●</span>
+                                <span id="lila-timestamp">00:00:00</span>
+                            </div>
+
+                            <!-- Canvas Display -->
+                            <div style="position: relative; width: 100%; flex: 1; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 200px;">
+                                <video id="webcam" autoplay playsinline class="hidden" style="display: none;"></video>
+                                <canvas id="outputCanvas" class="lila-canvas" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
+                                <div id="loadingText" class="lila-flicker-text" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--lila-red); font-size: 20px; letter-spacing: 2px;">
+                                    CAMERA ACCESS DENIED
+                                </div>
+                            </div>
+
+                            <!-- Controls -->
+                            <div class="lila-controls" style="padding: 10px; border-top: 1px solid var(--lila-border);">
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <div style="flex: 1;">
+                                        <label style="display: block; color: var(--lila-red); font-size: 10px; margin-bottom: 4px; font-weight: bold;">THRESHOLD</label>
+                                        <input type="range" id="thresholdRange" min="0" max="255" value="140" class="lila-range">
+                                    </div>
+                                    <div style="width: 160px;">
+                                        <label style="display: block; color: var(--lila-red); font-size: 10px; margin-bottom: 4px; font-weight: bold;">PALETTE MODE</label>
+                                        <div class="lila-btn-group">
+                                            <button onclick="setPalette('lila')" class="lila-btn-sm" style="padding: 4px 8px; font-size: 10px; background: rgba(51, 17, 17, 0.6);">LILA RED</button>
+                                            <button onclick="setPalette('bw')" class="lila-btn-sm" style="padding: 4px 8px; font-size: 10px; background: rgba(20, 30, 40, 0.6); color: #8899aa; border-color: #223344;">MONO</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="lila-btn-group" style="margin-top: 10px; justify-content: center; gap: 10px;">
+                                    <button id="startBtn" class="lila-btn-sm lila-btn-action" style="padding: 6px 20px; font-size: 14px; background: rgba(80, 20, 20, 0.6); border: 1px solid var(--lila-red);">INITIALIZE</button>
+                                    <button id="captureBtn" disabled class="lila-btn-sm lila-btn-action" style="padding: 6px 20px; font-size: 14px; background: rgba(80, 20, 20, 0.6); border: 1px solid var(--lila-red); color: var(--lila-red);">CAPTURE</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden Download Link -->
+                        <a id="downloadLink" style="display:none;"></a>
+                    </div>
+
+                    <!-- Right Column: Info & Tags -->
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 15px; max-width: 400px;">
+                        
+                        <!-- Spacer to align with Left Column Header (approx height of header + margin) -->
+                        <div style="height: 50px;"></div>
+
+                        <!-- User Info Box -->
+                        <div class="lila-border" style="padding: 15px; background: #000; display: flex; flex-direction: column; gap: 12px;">
+                            <div class="retro-info-row" style="border-bottom: 1px dashed #311; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                                <span class="retro-info-label" style="color: #ff6666; font-size: 14px; letter-spacing: 1px;">NAME</span>
+                                <span id="uc-username" class="retro-info-value" style="font-size: 14px; letter-spacing: 2px;">UNKNOWN</span>
+                            </div>
+                            <div class="retro-info-row" style="border-bottom: 1px dashed #311; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                                <span class="retro-info-label" style="color: #ff6666; font-size: 14px; letter-spacing: 1px;">INCEPT DATE</span>
+                                <span id="uc-incept" class="retro-info-value" style="font-size: 14px; letter-spacing: 2px;">-- / -- / ----</span>
+                            </div>
+                            <div class="retro-info-row" style="border-bottom: 1px dashed #311; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                                <span class="retro-info-label" style="color: #ff6666; font-size: 14px; letter-spacing: 1px;">FUNCTION</span>
+                                <span id="uc-function" class="retro-info-value" style="font-size: 14px; letter-spacing: 2px;">VISITOR</span>
+                            </div>
+                            <div class="retro-info-row" style="border-bottom: 1px dashed #311; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                                <span class="retro-info-label" style="color: #ff6666; font-size: 14px; letter-spacing: 1px;">MENTAL STATE</span>
+                                <span id="uc-rank" class="retro-info-value retro-info-value-red" style="font-size: 14px; letter-spacing: 2px;">CURIOUS</span>
+                            </div>
+                            <div class="retro-info-row" style="padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                                <span class="retro-info-label" style="color: #ff6666; font-size: 14px; letter-spacing: 1px;">LAST LOCATION</span>
+                                <span class="retro-info-value" style="font-size: 14px; letter-spacing: 2px;">--- --- ---</span>
+                            </div>
+                        </div>
+
+                        <!-- Interest Profile Box -->
+                        <div class="lila-border" style="padding: 15px; background: #000; flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                            <div class="retro-interest-title" style="background: transparent; color: #ff6666; border-bottom: 1px solid #311; padding: 0 0 8px 0; margin-bottom: 4px; font-size: 14px; letter-spacing: 1px;">INTEREST PROFILE</div>
+                            <div class="retro-interest-subtitle" style="color: #ff5555; font-size: 12px; margin-bottom: 10px;">TOP ACCESSED ARCHIVES</div>
+                            
+                            <div id="uc-categories" class="retro-interest-tags" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: auto;">
+                                <span class="retro-interest-tag retro-loading-tag">LOADING...</span>
+                            </div>
+                            
+                            <div class="retro-interest-stats" style="margin-top: 10px; border-top: 1px dashed #311; padding-top: 15px;">
+                                <div class="retro-stat-item" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="retro-stat-label" style="color: #ff5555; font-size: 14px;">PROFILE:</span>
+                                    <span class="retro-stat-value" id="uc-profile-type" style="color: rgb(249, 252, 227); font-size: 16px; letter-spacing: 1px;">ANALYZING...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
