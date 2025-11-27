@@ -58,7 +58,10 @@
             position: relative;
             z-index: 1;
         }
-        
+
+        #user-center-modal {
+        z-index: 10;
+        }
         /* 头部菜单栏 */
         .menubar {
             background: #4a4a3a;
@@ -77,7 +80,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            height: 36px;
+            height: 28px;
         }
         
         .menubar-left {
@@ -96,9 +99,10 @@
         .menu-item {
             font-size: 11px;
             font-weight: bold;
-            color: #c7d4a0; /* 提高文字亮度 */
-            background-color: #4a4a3a; /* 分离文字和背景 */
+            color: #c0c0a0;
             padding: 2px 4px;
+            user-select: none;
+            cursor: pointer;
         }
         
         .menu-item:hover {
@@ -292,10 +296,8 @@
         
         .window-content {
             background-color: #b0b090;
-            background-image: 
-                linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
-                url('static/horror-dolls-bg.jpg');
-            background-size: 650px auto;
+            background-image: url('static/horror-dolls-bg.jpg');
+            background-size: 450px auto;
             background-repeat: repeat;
             background-position: center;
             background-attachment: scroll;
@@ -315,38 +317,6 @@
         
         .window-content.scrollable {
             overflow-y: auto;
-        }
-        
-        /* Archive Statistics Window - Custom Background */
-        .archive-stats-window .window-content {
-            background-color: #1a1a1a;
-            position: relative;
-        }
-        
-        .archive-stats-window .window-content::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('static/Vector 1.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            filter: brightness(0.25);
-            z-index: 0;
-        }
-        
-        .archive-stats-window .window-content .stat-item {
-            color: #c0c0a0 !important;
-            font-weight: bold;
-            position: relative;
-            z-index: 10;
-        }
-        
-        .archive-stats-window .window-content .stat-item span {
-            color: #c0c0a0 !important;
         }
         
         .dialog-content {
@@ -418,10 +388,8 @@
         
         .story-item {
             background: 
-                linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
-                url('static/horror-dolls-bg.jpg') center/800px auto no-repeat,
                 linear-gradient(135deg, rgba(208,208,176,0.03) 0%, transparent 40%),
-                linear-gradient(180deg, #b8b8a8 0%, #b2b292 25%, #b0b090 50%, #aca88c 75%, #a8a888 100%);
+                linear-gradient(180deg, #b8b898 0%, #b2b292 25%, #b0b090 50%, #aca88c 75%, #a8a888 100%);
             border: 1.5px solid;
             border-color: #d8d8b8 #2a2a1a #2a2a1a #d8d8b8;
             border-left: 2px solid #d8d8b8;
@@ -441,25 +409,6 @@
             margin-bottom: 10px;
             outline: 1px dashed rgba(138,138,106,0.12);
             outline-offset: -5px;
-            opacity: 0.52; /* More transparent effect */
-            /* Added styles for maintained hover effect */
-            background: 
-                linear-gradient(135deg, rgba(224,224,192,0.15) 0%, transparent 40%),
-                linear-gradient(180deg, #c8c8a8 0%, #c2c2a2 25%, #c0c0a0 50%, #bcb89c 75%, #b8b898 100%);
-            transform: translate(-2px, -2px); /* Apply hover visual effect */
-            box-shadow: 
-                inset 2px 2px 0 #f8f8d8,
-                inset 3px 3px 0 rgba(248,248,216,0.6),
-                inset -2px -2px 0 #6a6a5a,
-                inset -3px -3px 0 rgba(106,106,90,0.6),
-                inset 0 0 0 1px rgba(154,154,122,0.4),
-                6px 6px 0 #1a1a0a,
-                7px 7px 0 rgba(26,26,10,0.8),
-                9px 9px 0 rgba(0,0,0,0.5),
-                11px 11px 0 rgba(0,0,0,0.3),
-                13px 13px 0 rgba(0,0,0,0.15),
-                0 0 20px rgba(138,138,106,0.5);
-            outline-color: rgba(138,138,106,0.6); /* Match hover outline color */
         }
         
         .story-item::after {
@@ -470,17 +419,14 @@
             width: 100%;
             height: 100%;
             background-image:
-                /* 半色调点阵效果 - 大点 */
-                repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.25) 0px, rgba(0,0,0,0.25) 0.5px, transparent 0.5px, transparent 100%),
-                /* 半色调点阵效果 - 中点 */
-                repeating-radial-gradient(circle at 50% 50%, rgba(40,40,30,0.18) 0px, rgba(40,40,30,0.18) 0.4px, transparent 0.4px, transparent 100%),
-                /* 复古绿色CRT扫描线 */
-                repeating-radial-gradient(circle, rgba(42,255,106,0.08) 0.6px, transparent 1px);
-            background-size: 2.5px 2.5px, 3.5px 3.5px, 4px 4px;
-            background-position: 0 0, 1.2px 1.2px, 2px 2px;
+                repeating-radial-gradient(circle, rgba(42,255,106,0.13) 0.7px, transparent 1.2px),
+                repeating-radial-gradient(circle, rgba(42,255,106,0.09) 0.7px, transparent 1.2px),
+                repeating-radial-gradient(circle, rgba(42,255,106,0.07) 0.7px, transparent 1.2px);
+            background-size: 3px 3px, 4px 4px, 5px 5px;
+            background-position: 0 0, 2px 2px, 1px 1px;
             pointer-events: none;
-            mix-blend-mode: multiply;
-            opacity: 0.35;
+            mix-blend-mode: screen;
+            opacity: 0.32;
             z-index: 2;
         }
         
@@ -531,7 +477,7 @@
             background-size: 100% 3px, 3px 100%, 8px 8px, 8px 8px, 18px 18px, 12px 12px;
             background-position: 0 0, 0 0, 0 0, 4px 4px, 0 0, 0 0;
             pointer-events: none;
-            opacity: 0.3; /* Further adjust overlay transparency */
+            opacity: 0.5;
             mix-blend-mode: multiply;
             z-index: 1;
         }
@@ -762,7 +708,7 @@
             margin: 4px 0;
             border-bottom: 1px dotted #4a4a3a;
             font-size: 11px;
-            color: #c0c0a0 !important;
+            color: #c0c0a0;
         }
         
         .update-item {
@@ -889,21 +835,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-        }
-        
-        /* 登录模态框层级更高，确保在其他模态框之上 */
-        #auth-modal {
-            z-index: 2000;
-        }
-        
-        /* 故事详情模态框 */
-        #story-modal {
-            z-index: 1500;
-        }
-        
-        /* 个人中心模态框 */
-        #user-center-modal {
             z-index: 1000;
         }
         
@@ -1201,6 +1132,7 @@
             z-index: 10;
             font-size: 14px;
         }
+
         .retro-camera-badges {
             position: absolute;
             top: 8px;
@@ -1783,10 +1715,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
-        h1, h2, h3, p {
-            color: #ffffff; /* 提亮字体颜色 */
-        }
     </style>
 </head>
 <body>
@@ -1804,13 +1732,11 @@
         </div>
         
         <!-- 用户中心 -->
-        <div class="menu-item" id="menu-user" style="cursor: pointer;">
-            <img src="static/logo7.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"> 用户
-        </div>
+        <div class="menu-item" id="menu-user" style="cursor: pointer;">👤 用户</div>
         
         <!-- 消息通知 -->
         <div class="menu-item" id="menu-notifications" style="cursor: pointer; position: relative;">
-            <img src="static/logo9.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"> 通知
+            📬 通知
             <span id="notification-badge" style="position: absolute; top: -5px; right: -8px; background: #8b0000; color: white; border-radius: 50%; width: 16px; height: 16px; display: none; font-size: 9px; line-height: 16px; text-align: center;">0</span>
         </div>
     </div>
@@ -1833,23 +1759,23 @@
             <div class="window-content">
                 <div class="category-list">
                     <div class="category-item active" data-category="all">
-                        <span class="category-icon"><img src="static/logo3.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"></span>
+                        <span class="category-icon">📂</span>
                         <span class="category-label">全部档案</span>
                     </div>
                     <div class="category-item" data-category="subway_ghost">
-                        <span class="category-icon"><img src="static/logo4.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"></span>
+                        <span class="category-icon">🚇</span>
                         <span class="category-label">地铁灵异</span>
                     </div>
                     <div class="category-item" data-category="abandoned_building">
-                        <span class="category-icon"><img src="static/logo2.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"></span>
+                        <span class="category-icon">🏚️</span>
                         <span class="category-label">废弃建筑</span>
                     </div>
                     <div class="category-item" data-category="cursed_object">
-                        <span class="category-icon"><img src="static/logo8.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"></span>
+                        <span class="category-icon">🗿</span>
                         <span class="category-label">诅咒物品</span>
                     </div>
                     <div class="category-item" data-category="missing_person">
-                        <span class="category-icon"><img src="static/logo5.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"></span>
+                        <span class="category-icon">👤</span>
                         <span class="category-label">失踪案件</span>
                     </div>
                     <!-- '时空异常' category removed from UI -->
@@ -1858,7 +1784,7 @@
         </div>
 
         <!-- 档案统计窗口 -->
-        <div class="macos3-window archive-stats-window" style="margin-top: 15px;">
+        <div class="macos3-window" style="margin-top: 15px;">
             <div class="window-titlebar">
                 <span class="titlebar-buttons">
                     <span class="btn-close">●</span>
@@ -1868,10 +1794,10 @@
                 <span class="titlebar-text">档案统计</span>
             </div>
             <div class="window-content">
-                <p class="stat-item"><img src="static/logo6.png" alt="logo" style="width:20px;vertical-align:middle;margin-right:6px;"> 总档案数: <span id="story-count">0</span></p>
+                <p class="stat-item">📊 总档案数: <span id="story-count">0</span></p>
                 <p class="stat-item">💬 总评论数: <span id="comment-count">0</span></p>
-                <p class="stat-item"><img src="static/logo11.png" alt="logo" style="width:20px;vertical-align:middle;margin-right:6px;"> 在线用户: <span id="user-count">1</span></p>
-                <p class="stat-item"><img src="static/logo10.png" alt="logo" style="width:20px;vertical-align:middle;margin-right:6px;"> 最后更新: <span id="last-update">刚刚</span></p>
+                <p class="stat-item">👥 在线用户: <span id="user-count">1</span></p>
+                <p class="stat-item">⏰ 最后更新: <span id="last-update">刚刚</span></p>
             </div>
         </div>
     </div>
@@ -2125,11 +2051,6 @@
                                     <span class="retro-stat-label" style="color: #ff5555; font-size: 14px;">PROFILE:</span>
                                     <span class="retro-stat-value" id="uc-profile-type" style="color: rgb(249, 252, 227); font-size: 16px; letter-spacing: 1px;">ANALYZING...</span>
                                 </div>
-                            </div>
-                            
-                            <!-- 登录/登出按钮 -->
-                            <div style="margin-top: 15px; border-top: 1px dashed #311; padding-top: 15px;">
-                                <button id="uc-auth-btn" class="lila-btn-sm lila-btn-action" style="width: 100%; padding: 8px; font-size: 14px; letter-spacing: 2px; background: rgba(80, 20, 20, 0.6); border: 1px solid var(--lila-red); color: var(--lila-red);">LOGIN</button>
                             </div>
                         </div>
 

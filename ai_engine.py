@@ -371,7 +371,7 @@ def translate_text(text, target='en'):
                 '--max-time', '60'
             ]
 
-            proc = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=65)
+            proc = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=65, encoding='utf-8', errors='ignore')
             if proc.returncode == 0 and proc.stdout:
                 try:
                     resp = json.loads(proc.stdout)
@@ -483,7 +483,7 @@ def convert_to_simplified(text):
                 '-d', json.dumps(request_data, ensure_ascii=False),
                 '--max-time', '30'
             ]
-            proc = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=35)
+            proc = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=35, encoding='utf-8', errors='ignore')
             if proc.returncode == 0 and proc.stdout:
                 try:
                     resp = json.loads(proc.stdout)
@@ -702,7 +702,7 @@ def expand_story_for_category(text, category, min_chars=350):
                 '--max-time', '90'
             ]
 
-            proc = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=95)
+            proc = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=95, encoding='utf-8', errors='ignore')
             if proc.returncode == 0 and proc.stdout:
                 try:
                     resp = json.loads(proc.stdout)
@@ -812,7 +812,9 @@ def generate_ai_story(category=None, location=None, persona=None):
                     curl_command,
                     capture_output=True,
                     text=True,
-                    timeout=120
+                    timeout=120,
+                    encoding='utf-8',
+                    errors='ignore'
                 )
                 
                 if result.returncode != 0:
@@ -865,7 +867,9 @@ def generate_ai_story(category=None, location=None, persona=None):
                     title_curl_command,
                     capture_output=True,
                     text=True,
-                    timeout=60
+                    timeout=60,
+                    encoding='utf-8',
+                    errors='ignore'
                 )
                 
                 if title_result.returncode != 0:
@@ -1598,7 +1602,7 @@ def generate_audio_description_with_lm_studio(title, content, comment_context=""
             })
         ]
         
-        result = subprocess.run(curl_command, capture_output=True, text=True, timeout=10)
+        result = subprocess.run(curl_command, capture_output=True, text=True, timeout=10, encoding='utf-8', errors='ignore')
         
         if result.returncode == 0:
             try:
@@ -2040,11 +2044,17 @@ def generate_ai_response(story, user_comment, previous_ai_responses=None):
                 curl_command,
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=120,
+                encoding='utf-8',
+                errors='ignore'
             )
             
             if result.returncode != 0:
                 raise Exception(f"curl 命令失败: {result.stderr}")
+            
+            # 检查输出是否为空
+            if not result.stdout or result.stdout.strip() == '':
+                raise Exception("curl 返回空响应")
             
             # 解析响应
             response_data = json.loads(result.stdout)

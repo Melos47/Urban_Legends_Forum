@@ -224,6 +224,7 @@ function showUserCenter() {
     const rankEl = document.getElementById('uc-rank');
     const categoriesEl = document.getElementById('uc-categories');
     const profileTypeEl = document.getElementById('uc-profile-type');
+    const authBtn = document.getElementById('uc-auth-btn');
 
     if (currentUser) {
         if (username) username.textContent = currentUser.username.toUpperCase().split('').join(' . ');
@@ -233,6 +234,15 @@ function showUserCenter() {
         }
         if (functionEl) functionEl.textContent = 'INVESTIGATOR';
         if (rankEl) rankEl.textContent = 'CURIOUS';
+        
+        // 更新登录/登出按钮
+        if (authBtn) {
+            authBtn.textContent = 'LOGOUT';
+            authBtn.onclick = () => {
+                logout();
+                closeUserCenterModal();
+            };
+        }
         
         // 获取用户最感兴趣的分类
         if (categoriesEl && token) {
@@ -262,6 +272,15 @@ function showUserCenter() {
         if (incept) incept.textContent = '-- / -- / ----';
         if (functionEl) functionEl.textContent = 'VISITOR';
         if (rankEl) rankEl.textContent = 'UNKNOWN';
+        
+        // 更新登录/登出按钮
+        if (authBtn) {
+            authBtn.textContent = 'LOGIN';
+            authBtn.onclick = () => {
+                closeUserCenterModal();
+                showLoginForm();
+            };
+        }
         
         // 访客状态
         if (categoriesEl) {
@@ -634,9 +653,8 @@ async function loadStories(silent = false, page = 1) {
         const totalComments = data.stories.reduce((sum, story) => sum + (story.comments_count || 0), 0);
         const commentCountEl = document.getElementById('comment-count');
         if (commentCountEl) {
-            // 添加一些随机的基础评论数，使其看起来更真实（300-600之间）
-            const baseComments = Math.floor(Math.random() * 300) + 300;
-            commentCountEl.textContent = totalComments + baseComments;
+            // 显示真实的评论总数
+            commentCountEl.textContent = totalComments;
         }
         
         // 模拟在线用户数（小幅波动，避免完全随机）
@@ -1413,6 +1431,9 @@ function showLoginForm() {
     if (toggleBtn) toggleBtn.dataset.mode = 'register';
     if (authForm) authForm.reset();
     
+    // 关闭故事详情/评论模态框
+    closeStoryModal();
+    
     const modal = document.getElementById('auth-modal');
     if (modal) modal.style.display = 'flex';
 }
@@ -1427,6 +1448,9 @@ function showRegisterForm() {
     if (emailGroup) emailGroup.style.display = 'block';
     if (toggleBtn) toggleBtn.dataset.mode = 'login';
     if (authForm) authForm.reset();
+    
+    // 关闭故事详情/评论模态框
+    closeStoryModal();
     
     const modal = document.getElementById('auth-modal');
     if (modal) modal.style.display = 'flex';
