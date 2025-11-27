@@ -25,19 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✨ 都市传说档案馆已加载');
     if (token) verifyToken();
     loadStories();
+
     bindEvents();
     updateClock();
     setInterval(updateClock, 1000);
-    
+
     // 新菜单栏事件
     bindHeaderEvents();
-    
+
     // 每30秒检查新故事和通知
     setInterval(() => {
         loadStories(true);  // 静默刷新
-        if (currentUser) checkNotifications();
     }, 30000);
-    
+
     // 初始通知检查
     if (currentUser) checkNotifications();
 });
@@ -1413,6 +1413,14 @@ function showLoginForm() {
     if (toggleBtn) toggleBtn.dataset.mode = 'register';
     if (authForm) authForm.reset();
     
+    // 如果故事详情/评论模态正在打开，先关闭它，确保只显示登录模态
+    try {
+        closeStoryModal();
+    } catch (e) {
+        // 忽略：如果 closeStoryModal 未定义或其它错误，不阻止打开登录框
+        console.warn('closeStoryModal() 调用失败:', e);
+    }
+
     const modal = document.getElementById('auth-modal');
     if (modal) modal.style.display = 'flex';
 }
@@ -1428,6 +1436,13 @@ function showRegisterForm() {
     if (toggleBtn) toggleBtn.dataset.mode = 'login';
     if (authForm) authForm.reset();
     
+    // 关闭故事/评论模态，优先显示注册/登录模态
+    try {
+        closeStoryModal();
+    } catch (e) {
+        console.warn('closeStoryModal() 调用失败:', e);
+    }
+
     const modal = document.getElementById('auth-modal');
     if (modal) modal.style.display = 'flex';
 }
