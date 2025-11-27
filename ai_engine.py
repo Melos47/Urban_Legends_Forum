@@ -2261,7 +2261,7 @@ def should_generate_new_story():
         Story.current_state != 'ended'
     ).count()
     
-    max_active = int(os.getenv('MAX_ACTIVE_STORIES', 5))
+    max_active = int(os.getenv('MAX_ACTIVE_STORIES', 30))
     
     return active_stories < max_active
 
