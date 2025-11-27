@@ -244,17 +244,6 @@ function showUserCenter() {
             })
             .then(res => res.json())
             .then(data => {
-                // Update Dynamic Effects based on stats
-                if (data.stats) {
-                    // Eyes based on clicks (1 click = 1 eye, max 20)
-                    MAX_EYES = Math.min(data.stats.total_clicks, 20);
-                    
-                    // Mouths based on comments (1 comment = 1 mouth, max 5)
-                    MAX_MOUTHS = Math.min(data.stats.total_comments, 5);
-                    
-                    console.log(`👁️ Eyes: ${MAX_EYES}, 👄 Mouths: ${MAX_MOUTHS}`);
-                }
-
                 if (data.categories && data.categories.length > 0) {
                     categoriesEl.innerHTML = data.categories.map(cat => {
                         const categoryLabel = getCategoryLabel(cat.category);
@@ -1627,8 +1616,8 @@ function updateClock() {
 // ============================================
 let lilaEyes = [];
 let lilaMouths = [];
-let MAX_EYES = 0;   // Dynamic based on clicks
-let MAX_MOUTHS = 0; // Dynamic based on comments
+const MAX_EYES = 12;
+const MAX_MOUTHS = 2;
 let lilaHeadX = PROCESS_WIDTH / 2;
 let lilaHeadY = PROCESS_HEIGHT / 2;
 
