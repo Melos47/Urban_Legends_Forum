@@ -57,7 +57,7 @@ def force_generate_for_story(story_id):
                 print(f"   - {e.file_path}")
                 print(f"     存在: {'✅' if file_exists else '❌'} | 大小: {file_size:,} bytes")
         else:
-            print(f"\n❌ 没有生成新证据！检查日志查看错误")
+            print(f"\n❌ 没有生成新证据!检查日志查看错误")
 
 if __name__ == '__main__':
     import sys

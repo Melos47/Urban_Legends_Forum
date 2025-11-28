@@ -164,15 +164,15 @@ function renderStoriesFromList(stories) {
     
     container.innerHTML = stories.map(story => {
         return '<div class="story-item" onclick="showStoryDetail(' + story.id + ')">' +
-            '<div class="story-title">👻 ' + escapeHtml(story.title) + '</div>' +
+            '<div class="story-title">' + escapeHtml(story.title) + '</div>' +
             '<div class="story-meta">' +
-            '<span>👁️ ' + story.views + '</span>' +
-            '<span>💬 ' + story.comments_count + '</span>' +
-            '<span>📸 ' + story.evidence_count + '</span>' +
+            '<span><span class="story-icon">👁️</span> ' + story.views + '</span>' +
+            '<span><span class="story-icon">💬</span> ' + story.comments_count + '</span>' +
+            '<span><span class="story-icon">📸</span> ' + story.evidence_count + '</span>' +
             '</div>' +
             '<div class="story-preview">' + escapeHtml(story.content.substring(0, 80)) + '</div>' +
             '<div class="story-footer">' +
-            '<span>' + (story.ai_persona || '🤖 AI') + '</span>' +
+            '<span>' + (story.ai_persona || '<span class="story-icon">🤖</span> AI') + '</span>' +
             '<span>' + formatDate(story.created_at) + '</span>' +
             '</div>' +
             '</div>';
@@ -1086,15 +1086,15 @@ function renderStories() {
     
     container.innerHTML = filtered.map(story => {
         return '<div class="story-item" onclick="showStoryDetail(' + story.id + ')">' +
-            '<div class="story-title">👻 ' + escapeHtml(story.title) + '</div>' +
+            '<div class="story-title">' + escapeHtml(story.title) + '</div>' +
             '<div class="story-meta">' +
-            '<span>👁️ ' + story.views + '</span>' +
-            '<span>💬 ' + story.comments_count + '</span>' +
-            '<span>📸 ' + story.evidence_count + '</span>' +
+            '<span><span class="story-icon">👁️</span> ' + story.views + '</span>' +
+            '<span><span class="story-icon">💬</span> ' + story.comments_count + '</span>' +
+            '<span><span class="story-icon">📸</span> ' + story.evidence_count + '</span>' +
             '</div>' +
             '<div class="story-preview">' + escapeHtml(story.content.substring(0, 80)) + '</div>' +
             '<div class="story-footer">' +
-            '<span>' + (story.ai_persona || '🤖 AI') + '</span>' +
+            '<span>' + (story.ai_persona || '<span class="story-icon">🤖</span> AI') + '</span>' +
             '<span>' + formatDate(story.created_at) + '</span>' +
             '</div>' +
             '</div>';
@@ -1163,39 +1163,68 @@ async function showStoryDetail(storyId) {
         const titleEl = document.getElementById('story-title');
         if (titleEl) titleEl.textContent = story.title;
         
-        let html = '<div style="border-bottom: 2px dashed #6b0080; padding-bottom: 10px; margin-bottom: 10px;">' +
-            '<div style="font-weight: bold; color: #6b0080;">作者: ' + (story.ai_persona || 'AI楼主') + ' 👻</div>' +
-            '<div style="font-size: 10px; color: #666; margin: 5px 0;">' + formatDate(story.created_at) + ' | 浏览: ' + story.views + '</div>';
+        // 开始构建贴吧风格HTML
+        let html = '';
+        let floorNumber = 1;
+        
+        // ============ 1楼：主贴（楼主） ============
+        html += '<div class="tieba-floor-container">';
+        html += '<div class="tieba-floor-header">' +
+            '<span class="tieba-floor-number">1楼</span>' +
+            '<span class="tieba-floor-time">' + formatDate(story.created_at) + ' | 👁 浏览: ' + story.views + '</span>' +
+            '</div>';
+        
+        html += '<div class="tieba-floor-body">';
+        // 用户信息栏（横向布局，在上方）
+        html += '<div class="tieba-user-info">' +
+            '<span class="tieba-user-avatar">👻</span>' +
+            '<span class="tieba-user-name">' + escapeHtml(story.ai_persona || 'AI楼主') + '</span>' +
+            '<span class="tieba-user-badge">楼主</span>' +
+            '<div class="tieba-user-stats">' +
+            '<span>档案: ' + (story.id % 100 + 1) + '</span>' +
+            '<span>评论: ' + (story.comments ? story.comments.length : 0) + '</span>' +
+            '</div>' +
+            '</div>';
+        
+        // 内容区
+        html += '<div class="tieba-content-area">';
         
         // 显示封贴说明
         if (story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'))) {
-            html += '<div style="border-top: 1px solid #999; border-bottom: 1px solid #999; padding: 8px 0; margin: 10px 0; text-align: center; color: #666; font-size: 10px;">' +
-                '本贴已超过1年无人回复，已封锁禁止回复' +
+            html += '<div style="background:#f0e68c; border:2px solid #daa520; padding:8px; margin-bottom:10px; text-align:center; color:#8b4513; font-size:11px; font-weight:bold;">' +
+                '🔒 本贴已超过1年无人回复，已封锁禁止回复' +
                 '</div>';
         }
         
-        html += '<div id="story-original-content" style="white-space: pre-wrap; line-height: 1.6; word-break: break-all; font-size: 11px;">' + escapeHtml(story.content) + '</div>' +
-            '</div>';
+        // 主贴内容
+        html += '<div class="tieba-main-content">' + escapeHtml(story.content) + '</div>';
         
+        // 证据区域
         if (story.evidence && story.evidence.length > 0) {
             console.log('✅ 开始渲染证据区域...');
-            html += '<div class="evidence-section"><div class="evidence-title">📸 证据</div><div class="evidence-grid">';
+            html += '<div style="margin-top:15px; padding:12px; background:#b8b8a8; border:1px solid #7a7a6a;">';
+            html += '<div style="font-weight:bold; color:#2a2a1a; font-size:12px; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #8a8a7a;">📎 附件证据</div>';
+            html += '<div class="evidence-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px;">';
             story.evidence.forEach(e => {
-                html += '<div class="evidence-item">';
-                // Check both 'type' and 'evidence_type' fields, default to 'image' if not specified
+                html += '<div class="evidence-item" style="border:1px solid #6a6a5a; padding:8px; background:#c8c8b8;">';
                 const evidenceType = e.type || e.evidence_type || 'image';
                 if (evidenceType === 'image') {
-                    html += '<img src="' + e.file_path + '" style="width:100%; aspect-ratio: 1/1; object-fit: contain; background-color: #000; border: 1px solid #666;">';
+                    html += '<img src="' + e.file_path + '" style="width:100%; aspect-ratio: 1/1; object-fit: contain; background-color: #000; border: 1px solid #666; margin-bottom:6px;">';
                 } else if (evidenceType === 'audio') {
-                    html += '<audio controls style="width:100%; height:30px;"><source src="' + e.file_path + '"></audio>';
+                    html += '<audio controls style="width:100%; height:30px; margin-bottom:6px;"><source src="' + e.file_path + '"></audio>';
                 }
-                html += '<div class="evidence-desc">' + escapeHtml(e.description) + '</div></div>';
+                html += '<div style="font-size:10px; color:#3a3a2a; line-height:1.4;">' + escapeHtml(e.description) + '</div></div>';
             });
             html += '</div></div>';
         }
         
-        html += '<div class="comment-section"><h3 style="color: #6b0080; border-bottom: 2px dashed #6b0080; padding-bottom: 8px;">💬 评论</h3>';
+        html += '</div>'; // 结束content-area
+        html += '</div>'; // 结束floor-body
+        html += '</div>'; // 结束floor-container
         
+        floorNumber++;
+        
+        // ============ 评论区（2楼开始） ============
         if (story.comments && story.comments.length > 0) {
             // 构建评论树结构
             const commentMap = {};
@@ -1215,61 +1244,106 @@ async function showStoryDetail(storyId) {
                 }
             });
             
-            // 渲染评论树
-            const renderComment = (comment, isReply = false) => {
-                const indent = isReply ? 'margin-left: 20px; border-left: 2px solid #ccc; padding-left: 10px;' : '';
-                let commentHtml = '<div id="comment-' + comment.id + '" class="comment-item" style="' + indent + '">' +
-                    '<div class="comment-author">' + escapeHtml(comment.author.username) + ' ' + comment.author.avatar + '</div>' +
-                    '<div class="comment-text">' + escapeHtml(comment.content) + '</div>' +
-                    '<div class="comment-time">' + formatDate(comment.created_at);
-                
-                // 添加回复按钮（如果未封贴且用户已登录）
-                const isLocked = story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'));
-                if (!isLocked && currentUser) {
-                    commentHtml += ' <a href="#" onclick="showReplyBox(' + comment.id + ', \'' + escapeHtml(comment.author.username) + '\'); return false;" style="color: #6b0080; font-size: 10px; margin-left: 10px;">回复</a>';
-                }
-                
-                commentHtml += '</div>' +
-                    '<div id="reply-box-' + comment.id + '" style="display: none; margin-top: 8px;"></div>' +
+            // 渲染评论（每个顶级评论是一个楼层）
+            const renderTopComment = (comment, currentFloor) => {
+                let commentHtml = '<div id="comment-' + comment.id + '" class="tieba-floor-container">';
+                commentHtml += '<div class="tieba-floor-header">' +
+                    '<span class="tieba-floor-number">' + currentFloor + ' 楼</span>' +
+                    '<span class="tieba-floor-time">' + formatDate(comment.created_at) + '</span>' +
                     '</div>';
                 
-                // 渲染子回复
-                if (comment.replies && comment.replies.length > 0) {
-                    comment.replies.forEach(reply => {
-                        commentHtml += renderComment(reply, true);
-                    });
+                commentHtml += '<div class="tieba-floor-body">';
+                // 用户信息栏（横向布局，在上方）
+                commentHtml += '<div class="tieba-user-info">' +
+                    '<span class="tieba-user-avatar">' + comment.author.avatar + '</span>' +
+                    '<span class="tieba-user-name">' + escapeHtml(comment.author.username) + '</span>' +
+                    '<div class="tieba-user-stats">' +
+                    '<span>评论: ' + (comment.id % 50 + 1) + '</span>' +
+                    '</div>' +
+                    '</div>';
+                
+                // 内容区
+                commentHtml += '<div class="tieba-content-area">';
+                commentHtml += '<div class="tieba-main-content">' + escapeHtml(comment.content) + '</div>';
+                
+                // 操作按钮
+                const isLocked = story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'));
+                if (!isLocked && currentUser) {
+                    commentHtml += '<div class="tieba-actions">' +
+                        '<button class="tieba-action-btn" onclick="showReplyBox(' + comment.id + ', \'' + escapeHtml(comment.author.username) + '\'); return false;">回复</button>' +
+                        '</div>';
                 }
+                
+                // 回复框（隐藏）
+                commentHtml += '<div id="reply-box-' + comment.id + '" style="display: none; margin-top: 8px;"></div>';
+                
+                // 子回复区域
+                if (comment.replies && comment.replies.length > 0) {
+                    commentHtml += '<div class="tieba-reply-section">';
+                    comment.replies.forEach(reply => {
+                        commentHtml += renderReply(reply);
+                    });
+                    commentHtml += '</div>';
+                }
+                
+                commentHtml += '</div>'; // 结束content-area
+                commentHtml += '</div>'; // 结束floor-body
+                commentHtml += '</div>'; // 结束floor-container
                 
                 return commentHtml;
             };
             
+            // 渲染子回复
+            const renderReply = (reply) => {
+                let replyHtml = '<div class="tieba-reply-item">';
+                replyHtml += '<div class="tieba-reply-header">' +
+                    '<span class="tieba-reply-author">' + reply.author.avatar + ' ' + escapeHtml(reply.author.username) + '</span>' +
+                    '<span class="tieba-reply-time">' + formatDate(reply.created_at) + '</span>' +
+                    '</div>';
+                replyHtml += '<div class="tieba-reply-content">' + escapeHtml(reply.content) + '</div>';
+                
+                // 递归渲染子回复
+                if (reply.replies && reply.replies.length > 0) {
+                    reply.replies.forEach(subReply => {
+                        replyHtml += renderReply(subReply);
+                    });
+                }
+                
+                replyHtml += '</div>';
+                return replyHtml;
+            };
+            
             topLevelComments.forEach(c => {
-                html += renderComment(c);
+                html += renderTopComment(c, floorNumber);
+                floorNumber++;
             });
         }
         
-        // 检查是否封贴
+        // ============ 底部：发帖区 ============
         const isLocked = story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'));
         
+        html += '<div class="tieba-floor-container" style="background:#b8b8a8;">';
         if (isLocked) {
-            html += '<div style="text-align: center; color: #999; padding: 20px; margin-top: 12px; border-top: 1px dotted #999;">' +
-                '<div style="font-size: 12px;">🔒 本帖已封锁，无法继续评论</div>' +
+            html += '<div style="text-align: center; color: #666; padding: 20px;">' +
+                '<div style="font-size: 12px; font-weight:bold;">🔒 本帖已封锁，无法继续评论</div>' +
                 '</div>';
         } else if (currentUser) {
-            html += '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px dotted #999;">' +
+            html += '<div style="padding: 15px; background:#c0c0a0;">' +
+                '<div style="font-weight:bold; color:#2a2a1a; margin-bottom:10px; font-size:12px; padding-bottom:8px; border-bottom:1px solid #8a8a7a;">✍ 回复本帖</div>' +
                 '<form onsubmit="submitComment(event, ' + storyId + ')">' +
-                '<textarea id="comment-text" placeholder="你的看法..." style="width:100%; height:60px; padding:8px; border:2px inset #999; font-size:11px; resize:none; font-family: MS Sans Serif, Arial;"></textarea>' +
-                '<button type="submit" class="macos3-button" style="margin-top:8px; width:100%;">发 表</button>' +
+                '<textarea id="comment-text" placeholder="写下你的想法..." style="width:100%; height:90px; padding:10px; border:1px solid #6a6a5a; background:#e0e0d0; font-size:12px; resize:vertical; font-family: MS Sans Serif, Arial; color:#1a1a0a; line-height:1.6;"></textarea>' +
+                '<button type="submit" class="macos3-button" style="margin-top:10px;">发表回复</button>' +
                 '</form></div>';
         } else {
-            html += '<p style="text-align:center; color:#666; margin-top:12px;"><a href="#" onclick="showLoginForm(); return false;" style="color:#6b0080;">登录</a> 后发表评论</p>';
+            html += '<div style="text-align:center; padding:20px; color:#5a5a3a; font-size:11px; background:#c0c0a0;">' +
+                '请先 <a href="#" onclick="showLoginForm(); return false;" style="color:#4a4a3a; font-weight:bold; text-decoration:underline;">登录</a> 后再发表评论</div>';
         }
-        
         html += '</div>';
+        
         const contentEl = document.getElementById('story-content');
         if (contentEl) {
             contentEl.innerHTML = html;
-            console.log('✅ 故事内容已渲染到模态框');
+            console.log('✅ 故事内容已渲染到模态框（贴吧风格）');
         }
         
         const storyModal = document.getElementById('story-modal');
@@ -1298,15 +1372,19 @@ function showReplyBox(commentId, authorName) {
     
     // 切换显示/隐藏
     if (replyBox.style.display === 'none' || !replyBox.innerHTML) {
-        replyBox.innerHTML = '<form onsubmit="submitReply(event, ' + commentId + ')" style="margin-top: 8px;">' +
-            '<div style="color: #666; font-size: 10px; margin-bottom: 4px;">回复 @' + escapeHtml(authorName) + ':</div>' +
-            '<textarea id="reply-text-' + commentId + '" placeholder="输入回复..." style="width:100%; height:50px; padding:6px; border:2px inset #999; font-size:10px; resize:none; font-family: MS Sans Serif, Arial;"></textarea>' +
-            '<div style="margin-top: 6px;">' +
-            '<button type="submit" class="macos3-button" style="font-size: 10px; padding: 4px 12px;">发送</button> ' +
-            '<button type="button" onclick="hideReplyBox(' + commentId + ')" class="macos3-button" style="font-size: 10px; padding: 4px 12px;">取消</button>' +
-            '</div></form>';
+        replyBox.innerHTML = '<div style="background:#b8b8a8; border:1px solid #7a7a6a; padding:12px; margin-top:10px;">' +
+            '<div style="color:#2a2a1a; font-size:11px; font-weight:bold; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid #8a8a7a;">回复 @' + escapeHtml(authorName) + '</div>' +
+            '<form onsubmit="submitReply(event, ' + commentId + ')">' +
+            '<textarea id="reply-text-' + commentId + '" placeholder="写下你的回复..." style="width:100%; height:70px; padding:8px; border:1px solid #6a6a5a; background:#e0e0d0; font-size:11px; resize:vertical; font-family: MS Sans Serif, Arial; color:#1a1a0a; line-height:1.5;"></textarea>' +
+            '<div style="margin-top:8px; display:flex; gap:8px;">' +
+            '<button type="submit" class="tieba-action-btn" style="padding:5px 14px; font-size:11px;">发送</button>' +
+            '<button type="button" onclick="hideReplyBox(' + commentId + ')" class="tieba-action-btn" style="padding:5px 14px; font-size:11px;">取消</button>' +
+            '</div></form></div>';
         replyBox.style.display = 'block';
-        document.getElementById('reply-text-' + commentId).focus();
+        setTimeout(() => {
+            const textarea = document.getElementById('reply-text-' + commentId);
+            if (textarea) textarea.focus();
+        }, 100);
     } else {
         replyBox.style.display = 'none';
     }

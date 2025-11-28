@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory
+﻿from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
@@ -310,7 +310,7 @@ def maybe_add_fake_comment(story_id):
             reply_templates = [
                 "楼主说得对...",
                 "我也这么觉得",
-                "楼主保重！",
+                "楼主保重!",
                 "楼主小心点",
                 "希望楼主平安",
                 "楼主后续呢？"
@@ -359,8 +359,8 @@ def maybe_add_fake_reply(story_id, parent_comment):
     # 生成简短回复（针对评论内容）
     reply_templates = [
         "我也遇到过类似的情况...",
-        "这也太诡异了吧！",
-        "楼主保重！",
+        "这也太诡异了吧!",
+        "楼主保重!",
         "有点吓人啊",
         "真的假的？",
         "我觉得你应该离开那里",
@@ -422,7 +422,7 @@ def init_default_stories():
 
 最可怕的是，我发现它的嘴型在说："别走，陪我玩玩..."
 
-现在我不敢回头看镜子了，但又不敢离开浴室。它会跟出来吗？有人知道该怎么办吗？求助！''',
+现在我不敢回头看镜子了，但又不敢离开浴室。它会跟出来吗？有人知道该怎么办吗？求助!''',
                 'category': 'cursed_object',
                 'location': '老城区单身公寓',
                 'is_ai_generated': True,
@@ -1207,12 +1207,12 @@ def generate_evidence_for_story(story_id, trigger_comment_id=None):
                     story_id=story_id,
                     notification_type='evidence_update',
                     notification_category='evidence',  # 证据通知分类为 'evidence'
-                    content=f'故事 "{story.title}" 更新了新的图片/声音证据！'
+                    content=f'故事 "{story.title}" 更新了新的图片/声音证据!'
                 )
                 db.session.add(notification)
             
             db.session.commit()
-            print(f"[generate_evidence_for_story] ✅ 证据生成完成！已通知 {len(notified_users)} 个用户")
+            print(f"[generate_evidence_for_story] ✅ 证据生成完成!已通知 {len(notified_users)} 个用户")
 
 if __name__ == '__main__':
     # Start background scheduler for AI story generation
