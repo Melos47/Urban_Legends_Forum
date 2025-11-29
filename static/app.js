@@ -293,6 +293,39 @@ function showUserCenter() {
         modal.style.display = 'flex';
         // 初始化 Lila 摄像头控制
         initLilaCameraControls();
+
+        // Check for saved photo
+        const savedPhoto = localStorage.getItem('lila_photo');
+        const outputCanvas = document.getElementById('outputCanvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const startBtn = document.getElementById('startBtn');
+        const loadingText = document.getElementById('loadingText');
+
+        if (savedPhoto && outputCanvas) {
+            const img = new Image();
+            img.onload = () => {
+                const ctx = outputCanvas.getContext('2d');
+                // Ensure canvas size is set
+                outputCanvas.width = PROCESS_WIDTH;
+                outputCanvas.height = PROCESS_HEIGHT;
+                ctx.drawImage(img, 0, 0);
+                
+                if (loadingText) loadingText.style.display = 'none';
+                
+                if (captureBtn) {
+                    captureBtn.disabled = false;
+                    captureBtn.innerText = "RETAKE";
+                    captureBtn.style.background = "rgba(200, 50, 50, 0.8)";
+                    captureBtn.style.color = "#fff";
+                }
+                
+                if (startBtn) {
+                    startBtn.textContent = 'TERMINATE';
+                    startBtn.style.background = 'rgba(255, 50, 50, 0.4)';
+                }
+            };
+            img.src = savedPhoto;
+        }
     }
 }
 
@@ -527,6 +560,7 @@ function processLilaFrame() {
 
 function captureLilaImage() {
     const captureBtn = document.getElementById('captureBtn');
+    const outputCanvas = document.getElementById('outputCanvas');
     
     // Check if we are currently running the camera loop (Live Mode)
     if (retroCameraAnimationId) {
@@ -534,6 +568,12 @@ function captureLilaImage() {
         // Stop the processing loop to freeze the current frame
         cancelAnimationFrame(retroCameraAnimationId);
         retroCameraAnimationId = null;
+        
+        // Save image to localStorage
+        if (outputCanvas) {
+            const dataURL = outputCanvas.toDataURL('image/png');
+            localStorage.setItem('lila_photo', dataURL);
+        }
         
         // Update UI to show "RETAKE" state
         if (captureBtn) {
@@ -544,8 +584,15 @@ function captureLilaImage() {
         
     } else {
         // === RETAKE MODE ===
-        // Resume the processing loop
-        processLilaFrame();
+        // Clear saved image
+        localStorage.removeItem('lila_photo');
+        
+        // Resume the processing loop or start camera if needed
+        if (!retroCameraStream) {
+            startLilaCamera();
+        } else {
+            processLilaFrame();
+        }
         
         // Update UI back to "CAPTURE" state
         if (captureBtn) {
