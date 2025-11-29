@@ -213,7 +213,6 @@ Key files and folders:
 
 This project is provided under the MIT License. See the LICENSE file if included.
 
----
 
 ### 🥁 Acknowledgements
 We sincerely appreciate every team member for their dedication and contributions to this project:
@@ -225,7 +224,7 @@ Special thanks for creating the User Center interface and the Spirit-Image Captu
 Special thanks for designing all the interface icons in the project. The unified and highly recognizable visual symbols brought clarity and consistency to the overall style, greatly enhancing the sense of identity and professionalism—so cool～☆:.｡. o(≧▽≦)o .｡.:☆
 
 - **XIE Xiwen**:
-Special thanks for shaping the retro CRT UI style, and designing everything from the background and content pages to post cards and the sidebar layout. The atmospheric visual foundation she created gives the entire experience a unique personality and strong narrative tone—visual quality on point～(☻-☻)
+Special thanks for shaping all the retro CRT UI style, and designing everything from the background and content pages to post cards and the sidebar layout. The atmospheric visual foundation she created gives the entire experience a unique personality and strong narrative tone—visual quality on point～(☻-☻)
 
 - **YANG Siqi**:
 Special thanks for developing the narrative structure, as well as the core system logic behind comments, replies, auto image generation, and auto-posting. Also designed the notification center, ensuring a coherent and immersive interaction flow～(´▽｀)
