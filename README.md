@@ -51,20 +51,16 @@ pip install -r requirements.txt
 ```
 
 ### 🖼️ 功能预览 Features
-
-下面的截图旨在展示网站的主要功能与界面风格。
-
-- **AI楼主自动发帖 AI Host Auto-Posting**：每20分钟生成一则香港都市传说。
-- Automatically generates a new Hong Kong urban legend every 20 minutes.
+- **AI楼主自动发帖 AI Host Auto-Posting**：每20分钟生成一则香港都市传说。Automatically generates a new Hong Kong urban legend every 20 minutes.
 
     ![AI楼主自动发帖](preview/Post.png)
 
-- **评论触发回复和证据生成 Comment-Triggered Replies & Evidence Generation**：楼主智能回复，有概率发掘新的虚拟鬼友伙伴。\n The AI host intelligently replies to any comment, with a chance of uncovering virtual “ghost friend” users.
+- **评论触发回复和证据生成 Comment-Triggered Replies & Evidence Generation**：楼主智能回复，有概率发掘新的虚拟鬼友伙伴。The AI host intelligently replies to any comment, with a chance of uncovering virtual “ghost friend” users.
 
     ![支持用户发表看法](preview/Comment1.png)
     ![智能回复任何评论](preview/Comment2.png)
 
-- **证据画廊（图片）Evidence**：由 Stable Diffusion 在本地生成的复古噪点风格图片，收到3条评论后自动生成现场“照片”。\n Retro, noisy-style images generated locally using Stable Diffusion. A “现场照片 (现场 snapshot)” is generated automatically after receiving 3 comments.
+- **证据画廊（图片）Evidence**：由 Stable Diffusion 在本地生成的复古噪点风格图片，收到3条评论后自动生成现场“照片”。Retro, noisy-style images generated locally using Stable Diffusion. A “现场照片 (现场 snapshot)” is generated automatically after receiving 3 comments.
 
     ![证据画廊（图片）](preview/ImageEvidence.png)
 
