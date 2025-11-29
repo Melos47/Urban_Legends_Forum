@@ -1101,7 +1101,25 @@ function renderStories() {
     const container = document.getElementById('stories-container');
     if (!container) return;
     
-    const filtered = currentCategory === 'all' ? allStories : allStories.filter(s => s.category === currentCategory);
+    // Normalize and match categories robustly: support string/array, different casings, and label forms
+    const normalize = (v) => {
+        if (!v && v !== 0) return '';
+        if (Array.isArray(v)) return v.map(x => String(x).trim().toLowerCase());
+        return String(v).trim().toLowerCase();
+    };
+
+    const matchesCategory = (storyCat, catKey) => {
+        if (!catKey || catKey === 'all') return true;
+        const target = normalize(catKey);
+        const s = normalize(storyCat);
+        if (Array.isArray(s)) {
+            return s.some(x => x === target || x.includes(target));
+        }
+        // direct match or contains (handles cases like 'subway_ghost (地铁灵异)')
+        return s === target || s.includes(target) || target.includes(s);
+    };
+
+    const filtered = allStories.filter(s => matchesCategory(s.category, currentCategory));
     
     if (filtered.length === 0) {
         container.innerHTML = '<div class="loading-text">暂无档案</div>';

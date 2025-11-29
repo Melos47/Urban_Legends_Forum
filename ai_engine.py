@@ -119,16 +119,17 @@ AI_PERSONAS = [
     {'name': '地铁守夜人', 'emoji': '🚇', 'style': 'worker'}
 ]
 
-# Urban legend categories
+# Urban legend categories with balanced selection
+# Note: 旧物 stories map to cursed_object, 唐楼旧物 map to abandoned_building
 LEGEND_CATEGORIES = [
-    'subway_ghost',
-    'abandoned_building',
-    'cursed_object',
-    'missing_person',
-    'shadow_figure',
-    'haunted_electronics',
-    'fish_tank_horror',  # 旺角金鱼街斗鱼事件
-    'real_crime_mystery'  # 真实香港凶杀/失踪案件改编都市传说版
+    'subway_ghost',          # 地铁灵异
+    'abandoned_building',    # 废弃大楼（包含唐楼旧物发现场景）
+    'cursed_object',         # 诅咒物品（包含旧物/古董）
+    'missing_person',        # 失踪案件
+    'shadow_figure',         # 影子怪谈
+    'haunted_electronics',   # 电子设备灵异
+    'fish_tank_horror',      # 旺角金鱼街斗鱼事件（低频）
+    'real_crime_mystery'     # 真实香港案件改编（低频）
 ]
 
 # Locations in Hong Kong
@@ -764,9 +765,22 @@ def generate_ai_story(category=None, location=None, persona=None):
     If any parameter is None, the function falls back to a random choice.
     """
     try:
-        # Random story elements
+        # Random story elements with weighted selection to balance categories
         if category is None:
-            category = random.choice(LEGEND_CATEGORIES)
+            # 使用加权随机选择，平衡各类别出现频率
+            category_weights = {
+                'subway_ghost': 25,          # 地铁相关保持高频
+                'abandoned_building': 16,    # 废弃大楼（含唐楼场景）
+                'cursed_object': 20,         # 诅咒物品（含旧物/古董）高频
+                'missing_person': 6,         # 失踪案件降低
+                'shadow_figure': 15,         # 影子怪谈提升
+                'haunted_electronics': 4,    # 电子设备降低
+                'fish_tank_horror': 15,      # 金鱼/动物类
+                'real_crime_mystery': 3      # 真实案件稍微提升
+            }
+            categories = list(category_weights.keys())
+            weights = list(category_weights.values())
+            category = random.choices(categories, weights=weights, k=1)[0]
         if location is None:
             location = random.choice(CITY_LOCATIONS)
         if persona is None:
