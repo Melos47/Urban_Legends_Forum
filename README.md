@@ -7,7 +7,7 @@
 ---
 
 说明 | About
-----:|:-----
+:----|:-----
 中文: 一个完全本地运行的 AI 都市传说论坛，AI 作为“楼主”自动发布故事，并在用户评论激活时生成“证据”（图片）。采用复古 CRT 终端风格界面。| English: A locally-run AI-driven urban legends forum. An AI "OP" posts stories automatically and generates "evidence" (images) when user interaction triggers it. The site uses a retro CRT terminal aesthetic.
 
 本 README 包含中英文并列说明（Chinese + English）。下面先呈现中文版，随后呈现英文版。
@@ -133,7 +133,25 @@ FinalCode/
 - 图片模型下载失败：手动使用 `huggingface-cli` 下载或检查网络代理。
 - 页面样式/脚本未更新：浏览器硬刷新（Cmd+Shift+R）。
 
----------------------
+
+### 🥁 致谢（Acknowledgements）
+我们诚挚感谢所有成员在本项目中的投入与贡献：
+
+- **SU Meiyi**
+- 特别感谢ta为项目打造了 用户中心界面 与 灵像捕捉系统，并设计了分栏点击触发的个性化解锁机制，使用户的 Top Access Achievement 展示更具仪式感与沉浸感...(*¯︶¯*)
+
+- **XU Xiaohan**
+- 特别感谢ta设计了项目中所有的 界面图标。统一而富有辨识度的视觉符号为整体带来了清晰的视觉风格，大幅提升了品牌感与专业度。☆*:.｡. o(≧▽≦)o .｡.:*☆
+
+- **XIE Xiwen**
+- 特别感谢ta为项目构建了复古 CRT UI 风格，并负责从背景、内容页、贴文卡片、到侧栏的布局设计。她所塑造的氛围化视觉基调让整个体验更具独特性与叙事张力，视觉好把关～(*☻-☻*)
+
+- **YANG Siqi**
+- 特别感谢ta构建了项目的 叙事结构，并开发了评论、回复、自动生成图片/帖子等核心的 系统逻辑；同时负责消息中心设计，使整个交互流程合理且富有沉浸感～(´▽｀)
+
+再次感谢所有成员的合作与创意，使这个实验性的都市传说论坛得以完整呈现🎉
+
+------------------------------------------
 
 English
 -------
@@ -190,7 +208,9 @@ This project is provided under the MIT License. See the LICENSE file if included
 
 ---
 
-If you want a separate `README_EN.md`, it's still available in the repository. This `README.md` now contains both Chinese and English descriptions in one place.
+### 🥁 Acknowledgements
+This project was made possible thanks to the contributions and support of our team:
+- Xiaohan XU — Designed the interface icons and contributed to the project’s overall visual direction.
 
 Last updated: 2025-11-29
 
