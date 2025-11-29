@@ -50,6 +50,43 @@ source .venv/bin/activate  # macOS / Linux
 pip install -r requirements.txt
 ```
 
+### 🖼️ 功能预览
+
+下面的截图展示了网站的主要功能与界面风格。请将你的介绍图片放到仓库中的合适目录，并更新下方的相对路径即可在 README 中显示。
+
+- **AI楼主自动发帖**：每20分钟生成一则香港都市传说。
+
+    ![AI楼主自动发帖](preview/Post.png)
+
+- **评论触发回复和证据生成**：楼主智能回复，有概率发掘新的虚拟鬼友伙伴。
+
+    ![支持用户发表看法](preview/Comment1.png)
+    ![智能回复任何评论](preview/Comment2.png)
+
+- **证据画廊（图片）**：由 Stable Diffusion 在本地生成的复古噪点风格图片，收到3条评论后自动生成现场“照片”。
+
+    ![证据画廊（图片）](preview/ImageEvidence.png)
+
+- **用户中心和灵像捕捉**：使用本地 TTS 生成低保真磁带质感的音频线索。
+
+    ![证据音频（诡异配音）](preview/FaceCapture.png)
+    ![证据音频（诡异配音）](preview/Avatar.png)
+
+- **复古 CRT 终端 UI**：绿色磷光、旧报纸、屏幕闪烁，80年代地下论坛氛围。
+
+    ![复古 CRT 终端 UI](preview/MainPage.png)
+    ![登陆窗口](preview/Login.png)
+
+- **消息通知中心**：及时通知新的回复，还原真实论坛体验。
+
+    ![消息通知中心](preview/Notify.png)
+
+- **贴文分类**：个性化过滤，不再错过你感兴趣的话题。
+
+    ![分类导览](preview/Category.png)
+
+
+
 #### 配置本地 LM Studio（可选）
 1. 下载并安装 LM Studio（https://lmstudio.ai/）
 2. 加载适用模型（例如 `qwen3-4b-thinking-2507`）
