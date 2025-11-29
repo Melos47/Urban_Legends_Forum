@@ -1031,11 +1031,11 @@ function renderNotificationPagination() {
         });
     }
 
-    // Page info
+    // Page info (wrap numbers in spans so we can style them)
     const pageInfo = document.createElement('span');
-    pageInfo.style.color = '#fff';
+    pageInfo.className = 'page-info';
     pageInfo.style.margin = '0 8px';
-    pageInfo.textContent = '第 ' + notifCurrentPage + ' / ' + pages + ' 页';
+    pageInfo.innerHTML = '第 <span class="pg-current">' + notifCurrentPage + '</span> / <span class="pg-total">' + pages + '</span> 页';
 
     // Next button
     const nextBtn = document.createElement('button');
@@ -1119,8 +1119,8 @@ function renderPagination() {
         html += `<button class="macos3-button" disabled style="opacity: 0.5;">◀ 上一页</button>`;
     }
     
-    // 页码信息
-    html += `<span style="margin: 0 15px; color: #6b0080; font-weight: bold;">第 ${pagination.page} / ${pagination.pages} 页</span>`;
+    // 页码信息 (将数字包裹以便着色)
+    html += `<span class="page-info" style="margin: 0 15px; font-weight: bold;">第 <span class="pg-current">${pagination.page}</span> / <span class="pg-total">${pagination.pages}</span> 页</span>`;
     
     // 下一页按钮
     if (pagination.has_next) {

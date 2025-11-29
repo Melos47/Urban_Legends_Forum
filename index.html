@@ -20,9 +20,9 @@
             --border-light: #6a7260;
             --border-dark: #2a2e2a;
             --border-darker: #1a1d1a;
-            --accent-purple: #8a8e6a;
-            --accent-red: #a0a474;
-            --accent-cyan: #88926c;
+            --accent-purple: #b7bb98;
+            --accent-red: #b6bd6c;
+            --accent-cyan: #c2ca68;
             --titlebar-blue: #323632;
             --shadow-dark: rgba(0,0,0,0.85);
             --shadow-light: rgba(184,192,120,0.12);
@@ -39,6 +39,10 @@
             color: var(--text-dark);
             font-size: 11px;
             line-height: 1.5;
+            /* 使用弹性布局，使页脚可以粘在页面底部 */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
             overflow-x: hidden;
         }
         
@@ -140,9 +144,10 @@
         /* 主容器 - 2列布局 */
         .main-wrapper {
             width: 100%;
-            height: calc(100vh - 32px);
             display: flex;
+            flex: 1 1 auto; /* 填充主体剩余高度，保证 footer 在底部 */
             background: transparent;
+            min-height: 0; /* 允许内部滚动容器收缩 */
         }
         
         /* 左侧栏 */
@@ -1275,10 +1280,41 @@
             font-size: 10px;
             color: #a0a080;
             text-align: center;
+            margin-top: auto; /* 在弹性布局下推到页面底部 */
         }
         
         .footer p {
             margin: 2px 0;
+            color: #a0a090
+        }
+
+        /* Pagination button adjustments: make buttons narrower and prevent middle text collapsing */
+        .pagination .macos3-button,
+        #notification-pagination .macos3-button {
+            padding: 4px 8px;
+            font-size: 11px;
+            min-width: 36px;
+            height: 28px;
+            line-height: 1;
+        }
+
+        /* Ensure page info doesn't wrap and the surrounding text is white */
+        .pagination .page-info,
+        #notification-pagination .page-info {
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+            color: #b7bb98; /* '第' 和 '页' 使用白色 */
+        }
+
+        /* Page number styling: make the numbers (e.g. 1/3) use the requested color */
+        .pagination .page-info .pg-current,
+        .pagination .page-info .pg-total,
+        #notification-pagination .page-info .pg-current,
+        #notification-pagination .page-info .pg-total {
+            color: #b8c078;
+            font-weight: bold;
+            margin: 0 4px;
         }
         
         .loading-text {
@@ -2296,11 +2332,11 @@
     <!-- 右侧主内容区 -->
     <div class="main-content">
         <!-- 通知中心模态（由 JS 控制显示/隐藏） -->
-        <div id="notification-center" style="display:none; position:fixed; width:360px; max-height:60vh; overflow:auto; background: #111; border:2px solid #6b0080; padding:12px; z-index:1500; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+            <div id="notification-center" style="display:none; position:fixed; width:360px; max-height:60vh; overflow:auto; background: #111; border:2px solid #b7bb98; padding:12px; z-index:1500; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
             <!-- 关闭按钮已移除：点击中心外部将关闭通知中心 -->
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; overflow:visible; z-index:2600;">
-                <div style="font-weight:bold; color:#fff;">📬 通知中心</div>
+                <div style="font-weight:bold; color:#fff;">通知中心</div>
                 <div style="display:flex; gap:6px; align-items:center;">
                     <!-- custom dropdown to ensure menu appears under the button -->
                     <div id="notification-filter" style="position:relative;">
@@ -2358,7 +2394,7 @@
                 </div>
                 <div class="window-content scrollable">
                     <div id="stories-container" class="stories-container">
-                        <div class="loading-text">⏳ 加载档案中...</div>
+                        <div class="loading-text">加载档案中...</div>
                     </div>
                     <div id="pagination-container" style="margin-top: 10px;"></div>
                 </div>
