@@ -12,7 +12,7 @@
 
 本 README 包含中英文并列说明（Chinese + English）。下面先呈现中文版，随后呈现英文版。
 
-=====================
+
 
 中文（Chinese）
 -----------------
@@ -164,7 +164,6 @@ FinalCode/
 
 English
 ---
-
 ## Overview
 
 Urban Legends Archive is a locally-hosted forum that uses AI to post fictional urban legend stories and optionally generates "evidence" (images/audio) when users engage. The UI mimics a retro CRT terminal aesthetic.
