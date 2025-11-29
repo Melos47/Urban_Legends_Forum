@@ -137,24 +137,31 @@ FinalCode/
 ### 🥁 致谢（Acknowledgements）
 我们诚挚感谢所有成员在本项目中的投入与贡献：
 
-- **SU Meiyi**
-特别感谢ta为项目打造了 用户中心界面 与 灵像捕捉系统，并设计了分栏点击触发的个性化解锁机制，使用户的 Top Access Achievement 展示更具仪式感与沉浸感...(*¯︶¯*)
+- **SU Meiyi**:
+感谢ta为项目打造了 用户中心界面 与 灵像捕捉系统，并设计了分栏点击触发的个性化解锁机制，使用户的 Top Access Achievement 展示更具仪式感与沉浸感...（≧∇≦）!!
 
-- **XU Xiaohan**
-特别感谢ta设计了项目中所有的 界面图标。统一而富有辨识度的视觉符号为整体带来了清晰的视觉风格，大幅提升了品牌感与专业度，帅～☆*:.｡. o(≧▽≦)o .｡.:*☆
+- **XU Xiaohan**:
+感谢ta设计了项目中所有的 界面图标。统一而富有辨识度的视觉符号为整体带来了清晰的视觉风格，大幅提升了品牌感与专业度，帅～☆*:.｡. o(≧▽≦)o .｡.:*☆
 
-- **XIE Xiwen**
-特别感谢ta为项目构建了复古 CRT UI 风格，并负责从背景、内容页、贴文卡片、到侧栏的布局设计。她所塑造的氛围化视觉基调让整个体验更具独特性与叙事张力，视觉好把关～(*☻-☻*)
+- **XIE Xiwen**:
+感谢ta为项目构建了复古 CRT UI 风格，并负责从背景、内容页、贴文卡片、到侧栏的布局设计。她所塑造的氛围化视觉基调让整个体验更具独特性与叙事张力，视觉好把关～(*☻-☻*)
 
-- **YANG Siqi**
-特别感谢ta构建了项目的 叙事结构，并开发了评论、回复、自动生成图片/帖子等核心的 系统逻辑；同时负责消息中心设计，使整个交互流程合理且富有沉浸感～(´▽｀)
+- **YANG Siqi**:
+感谢ta构建了项目的 叙事结构，并开发了评论、回复、自动生成图片/帖子等核心的 系统逻辑；同时负责消息中心设计，使整个交互流程合理且富有沉浸感～(´▽｀)
 
 再次感谢所有成员的合作与创意，使这个实验性的都市传说论坛得以完整呈现🎉
 
+特别感谢开源社区与相关工具的开发者，他们的工作为本项目提供了重要支持：
+
+- **Stable Diffusion**：用于本地生成复古风格的图像素材。
+- **本地 TTS 工具**：用于生成低保真、磁带质感的音频线索。
+- **开源 UI 框架与库**：为构建 CRT 风格界面提供基础支持，使整体视觉更具年代感与沉浸感。
+
+我们由衷感谢所有为这个实验性的都市传说论坛体验做出贡献的人。
+
+
 ------------------------------------------
 
-English
--------
 
 ## Overview
 
@@ -209,8 +216,33 @@ This project is provided under the MIT License. See the LICENSE file if included
 ---
 
 ### 🥁 Acknowledgements
-This project was made possible thanks to the contributions and support of our team:
-- Xiaohan XU — Designed the interface icons and contributed to the project’s overall visual direction.
+We sincerely appreciate every team member for their dedication and contributions to this project:
+
+- **SU Meiyi**:
+Special thanks for creating the User Center interface and the Spirit-Image Capture system, as well as designing the personalized unlocking mechanism triggered through tab interactions. This feature makes the Top Access Achievement feel ritualistic and immersive… （≧∇≦）!!
+
+- **XU Xiaohan**:
+Special thanks for designing all the interface icons in the project. The unified and highly recognizable visual symbols brought clarity and consistency to the overall style, greatly enhancing the sense of identity and professionalism—so cool～☆:.｡. o(≧▽≦)o .｡.:☆
+
+- **XIE Xiwen**:
+Special thanks for shaping the retro CRT UI style, and designing everything from the background and content pages to post cards and the sidebar layout. The atmospheric visual foundation she created gives the entire experience a unique personality and strong narrative tone—visual quality on point～(☻-☻)
+
+- **YANG Siqi**:
+Special thanks for developing the narrative structure, as well as the core system logic behind comments, replies, auto image generation, and auto-posting. Also designed the notification center, ensuring a coherent and immersive interaction flow～(´▽｀)
+
+A big thank-you once again to all members for their collaboration and creativity, which made this experimental urban-legend forum come to life 🎉
+
+
+Special thanks to the open-source community and tool creators whose work made this project possible:
+
+- **Stable Diffusion**: Enabled local generation of retro-style visual evidence.
+- **Local TTS tools**: Provided low-fidelity, tape-like audio clues.
+- **Open-source UI frameworks and libraries**: Supported the creation of the CRT-style interface and contributed to the project’s immersive visual identity.
+
+We sincerely appreciate everyone who contributed to bringing this experimental urban-legend forum to life.
+
+
+---
 
 Last updated: 2025-11-29
 
