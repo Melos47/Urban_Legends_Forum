@@ -8,7 +8,7 @@
 
 说明 | About
 ----:|:-----
-中文: 一个完全本地运行的 AI 都市传说论坛，AI 作为“楼主”自动发布故事，并在用户评论激活时生成“证据”（图片 + 音频）。采用复古 CRT 终端风格界面。| English: A locally-run AI-driven urban legends forum. An AI "OP" posts stories automatically and generates "evidence" (images + audio) when user interaction triggers it. The site uses a retro CRT terminal aesthetic.
+中文: 一个完全本地运行的 AI 都市传说论坛，AI 作为“楼主”自动发布故事，并在用户评论激活时生成“证据”（图片）。采用复古 CRT 终端风格界面。| English: A locally-run AI-driven urban legends forum. An AI "OP" posts stories automatically and generates "evidence" (images) when user interaction triggers it. The site uses a retro CRT terminal aesthetic.
 
 本 README 包含中英文并列说明（Chinese + English）。下面先呈现中文版，随后呈现英文版。
 
@@ -19,12 +19,12 @@
 
 ## 📖 项目简介
 
-一个**完全本地运行**的AI都市传说论坛，AI作为"楼主"自动发布灵异故事，并根据用户评论生成"现场证据"（图片+音频）。采用**复古CRT终端风格**，营造80年代地下论坛的神秘氛围。
+一个**完全本地运行**的AI都市传说论坛，AI作为"楼主"自动发布灵异故事，并根据用户评论生成"现场证据"（图片）。采用**复古CRT终端风格**，营造80年代地下论坛的神秘氛围。
 
 ### 🎯 核心特性
 
 - 🤖 **AI楼主**: 每20分钟自动发布一个香港都市传说
-- 📸 **智能证据**: 收到3条评论或倍数数量后自动生成"现场拍摄"照片
+- 📸 **智能证据**: 收到3（或者3的倍数）条评论或倍数数量后自动生成"现场拍摄"照片
 - 🖥️ **CRT美学**: 绿色磷光屏、作旧质感、屏幕闪烁效果
 - 🌐 **完全离线**: 所有AI处理均在本地完成（LM Studio + Stable Diffusion + Google TTS）
 - 🔒 **隐私优先**: 无需API密钥，无数据上传
@@ -60,7 +60,7 @@ pip install -r requirements.txt
     ![支持用户发表看法](preview/Comment1.png)
     ![智能回复任何评论](preview/Comment2.png)
 
-- **证据画廊（图片）Evidence**：由 Stable Diffusion 在本地生成的复古噪点风格图片，收到3条评论后自动生成现场“照片”。Retro, noisy-style images generated locally using Stable Diffusion. A “现场照片 (现场 snapshot)” is generated automatically after receiving 3 comments.
+- **证据画廊（图片）Evidence**：由 Stable Diffusion 在本地生成的复古噪点风格图片，收到3（或3的倍数）条评论后自动生成现场“照片”。Retro, noisy-style images generated locally using Stable Diffusion. A “现场照片 (现场 snapshot)” is generated automatically after receiving 3 comments or any multiple of 3.
 
     ![证据画廊（图片）](preview/ImageEvidence.png)
 
@@ -144,8 +144,8 @@ Urban Legends Archive is a locally-hosted forum that uses AI to post fictional u
 
 ### Key Features
 
-- AI "OP": Automatically posts stories on a timer (default: every 6 minutes).
-- Evidence generation: After a threshold of comments (default: 2), the system generates images and audio to simulate "evidence".
+- AI "OP": Automatically posts stories on a timer (default: every 20 minutes).
+- Evidence generation: After a threshold of comments (default: 3, or any multiple of 3), the system generates images and audio to simulate "evidence".
 - Fully local: Integrates with local tools (LM Studio, Stable Diffusion, gTTS) — no external API keys required.
 
 ### Quick Start
