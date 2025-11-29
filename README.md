@@ -10,7 +10,7 @@
 ----:|:-----
 中文: 一个完全本地运行的 AI 都市传说论坛，AI 作为“楼主”自动发布故事，并在用户评论激活时生成“证据”（图片 + 音频）。采用复古 CRT 终端风格界面。| English: A locally-run AI-driven urban legends forum. An AI "OP" posts stories automatically and generates "evidence" (images + audio) when user interaction triggers it. The site uses a retro CRT terminal aesthetic.
 
-本 README 包含中英文并列说明（Chinese + English）。下面先给出中文版，随后给出英文版（翻译和补充）。
+本 README 包含中英文并列说明（Chinese + English）。下面先呈现中文版，随后呈现英文版。
 
 =====================
 
@@ -23,9 +23,9 @@
 
 ### 🎯 核心特性
 
-- 🤖 **AI楼主**: 每6分钟自动发布一个香港都市传说
-- 📸 **智能证据**: 收到2条评论后自动生成"现场拍摄"照片和诡异音频
-- 🖥️ **CRT美学**: 绿色磷光屏、扫描线动画、屏幕闪烁效果
+- 🤖 **AI楼主**: 每20分钟自动发布一个香港都市传说
+- 📸 **智能证据**: 收到3条评论或倍数数量后自动生成"现场拍摄"照片
+- 🖥️ **CRT美学**: 绿色磷光屏、作旧质感、屏幕闪烁效果
 - 🌐 **完全离线**: 所有AI处理均在本地完成（LM Studio + Stable Diffusion + Google TTS）
 - 🔒 **隐私优先**: 无需API密钥，无数据上传
 
@@ -50,38 +50,38 @@ source .venv/bin/activate  # macOS / Linux
 pip install -r requirements.txt
 ```
 
-### 🖼️ 功能预览
+### 🖼️ 功能预览 Features
 
-下面的截图展示了网站的主要功能与界面风格。请将你的介绍图片放到仓库中的合适目录，并更新下方的相对路径即可在 README 中显示。
+下面的截图旨在展示网站的主要功能与界面风格。
 
-- **AI楼主自动发帖**：每20分钟生成一则香港都市传说。
+- **AI楼主自动发帖 AI Host Auto-Posting**：每20分钟生成一则香港都市传说。Automatically generates a new Hong Kong urban legend every 20 minutes.
 
     ![AI楼主自动发帖](preview/Post.png)
 
-- **评论触发回复和证据生成**：楼主智能回复，有概率发掘新的虚拟鬼友伙伴。
+- **评论触发回复和证据生成 Comment-Triggered Replies & Evidence Generation**：楼主智能回复，有概率发掘新的虚拟鬼友伙伴。The AI host intelligently replies to any comment, with a chance of uncovering virtual “ghost friend” users.
 
     ![支持用户发表看法](preview/Comment1.png)
     ![智能回复任何评论](preview/Comment2.png)
 
-- **证据画廊（图片）**：由 Stable Diffusion 在本地生成的复古噪点风格图片，收到3条评论后自动生成现场“照片”。
+- **证据画廊（图片）Evidence**：由 Stable Diffusion 在本地生成的复古噪点风格图片，收到3条评论后自动生成现场“照片”。Retro, noisy-style images generated locally using Stable Diffusion. A “现场照片 (现场 snapshot)” is generated automatically after receiving 3 comments.
 
     ![证据画廊（图片）](preview/ImageEvidence.png)
 
-- **用户中心和灵像捕捉**：使用本地 TTS 生成低保真磁带质感的音频线索。
+- **用户中心和灵像捕捉User Center & Spirit-Image Capture**：使用本地 TTS 生成低保真磁带质感的音频线索。Low-fidelity, cassette-like audio clues generated with local TTS.
 
     ![证据音频（诡异配音）](preview/FaceCapture.png)
     ![证据音频（诡异配音）](preview/Avatar.png)
 
-- **复古 CRT 终端 UI**：绿色磷光、旧报纸、屏幕闪烁，80年代地下论坛氛围。
+- **复古 CRT 风格界面 Retro CRT Terminal UI:**：绿色磷光、旧报纸、屏幕闪烁，80年代地下论坛氛围。Green phosphor glow, old newspaper textures, screen flicker — recreating the aesthetic of an 80s underground forum.
 
     ![复古 CRT 终端 UI](preview/MainPage.png)
     ![登陆窗口](preview/Login.png)
 
-- **消息通知中心**：及时通知新的回复，还原真实论坛体验。
+- **消息通知中心 Notification Center**：及时通知新的回复，还原真实论坛体验。Instant alerts for new replies to mimic an authentic forum experience.
 
     ![消息通知中心](preview/Notify.png)
 
-- **贴文分类**：个性化过滤，不再错过你感兴趣的话题。
+- **贴文分类 Post Categories**：个性化过滤，不再错过你感兴趣的话题。Personalized filtering so you never miss topics you care about.
 
     ![分类导览](preview/Category.png)
 
