@@ -998,17 +998,17 @@ function renderNotificationListPage() {
 
         // 获取通知分类标签
         const category = n.notification_category || 'comment';
-        let categoryLabel = '📝 评论';
+        let categoryLabel = '评论';
         let categoryColor = '#88ccff';
         if (category === 'evidence') {
-            categoryLabel = '🎬 证据';
+            categoryLabel = '证据';
             categoryColor = '#ffaa66';
         }
 
         const contentHtml = '<div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">' +
             '<div style="flex:1;">' +
             // 主体文字使用主题黄绿色以匹配整体风格
-            '<div style="font-size:12px; color:#bbbdad;">' + escapeHtml(n.content) + '</div>' +
+            '<div style="font-size:12px; color:#b7bb98;">' + escapeHtml(n.content) + '</div>' +
             '<div style="font-size:10px; color:#7a8268; margin-top:6px;">' + formatDate(n.created_at) + '</div>' +
             '</div>' +
             '<div style="font-size:9px; background:' + categoryColor + '20; color:' + categoryColor + '; padding:2px 6px; border-radius:3px; white-space:nowrap;">' + categoryLabel + '</div>' +
@@ -1294,17 +1294,30 @@ async function showStoryDetail(storyId) {
                 const isLocked = story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'));
                 if (!isLocked && currentUser) {
                     commentHtml += '<div class="tieba-actions">' +
-                        '<button class="tieba-action-btn" onclick="showReplyBox(' + comment.id + ', \'' + escapeHtml(comment.author.username) + '\'); return false;">回复</button>' +
+                        '<button class="tieba-action-btn reply-btn" data-comment-id="' + comment.id + '" data-author-name="' + escapeHtml(comment.author.username) + '">回复</button>' +
                         '</div>';
                 }
                 
                 // 回复框（隐藏）
                 commentHtml += '<div id="reply-box-' + comment.id + '" style="display: none; margin-top: 8px;"></div>';
                 
-                // 子回复区域
+                // 子回复区域（扁平化渲染，避免嵌套产生逐层缩进）
                 if (comment.replies && comment.replies.length > 0) {
+                    // Helper: 深度优先展开回复为扁平列表
+                    const flattenReplies = (arr) => {
+                        let out = [];
+                        arr.forEach(r => {
+                            out.push(r);
+                            if (r.replies && r.replies.length > 0) {
+                                out = out.concat(flattenReplies(r.replies));
+                            }
+                        });
+                        return out;
+                    };
+
+                    const flatReplies = flattenReplies(comment.replies);
                     commentHtml += '<div class="tieba-reply-section">';
-                    comment.replies.forEach(reply => {
+                    flatReplies.forEach(reply => {
                         commentHtml += renderReply(reply);
                     });
                     commentHtml += '</div>';
@@ -1325,14 +1338,18 @@ async function showStoryDetail(storyId) {
                     '<span class="tieba-reply-time">' + formatDate(reply.created_at) + '</span>' +
                     '</div>';
                 replyHtml += '<div class="tieba-reply-content">' + escapeHtml(reply.content) + '</div>';
-                
-                // 递归渲染子回复
-                if (reply.replies && reply.replies.length > 0) {
-                    reply.replies.forEach(subReply => {
-                        replyHtml += renderReply(subReply);
-                    });
+
+                // 操作按钮：允许对回复继续回复（保持与顶级评论一致的行为）
+                const replyIsLocked = story.current_state === 'locked' || (story.title && story.title.includes('【已封贴】'));
+                if (!replyIsLocked && currentUser) {
+                    replyHtml += '<div class="tieba-actions" style="margin-top:6px;">' +
+                        '<button class="tieba-action-btn reply-btn" data-comment-id="' + reply.id + '" data-author-name="' + escapeHtml(reply.author.username) + '">回复</button>' +
+                        '</div>';
                 }
-                
+
+                // 回复框占位（用于回复该子回复）
+                replyHtml += '<div id="reply-box-' + reply.id + '" style="display: none; margin-top: 8px;"></div>';
+
                 replyHtml += '</div>';
                 return replyHtml;
             };
@@ -1367,6 +1384,19 @@ async function showStoryDetail(storyId) {
         const contentEl = document.getElementById('story-content');
         if (contentEl) {
             contentEl.innerHTML = html;
+            // 绑定 reply 按钮事件（使用 data-*，避免在字符串中出现难以转义的引号）
+            document.querySelectorAll('.reply-btn').forEach(btn => {
+                // 移除旧的处理器（如果存在）
+                if (btn._replyHandler) btn.removeEventListener('click', btn._replyHandler);
+                const handler = (e) => {
+                    e.preventDefault();
+                    const id = parseInt(btn.getAttribute('data-comment-id'), 10);
+                    const name = btn.getAttribute('data-author-name') || '';
+                    showReplyBox(id, name);
+                };
+                btn._replyHandler = handler;
+                btn.addEventListener('click', handler);
+            });
             console.log('✅ 故事内容已渲染到模态框（贴吧风格）');
         }
         
@@ -1444,13 +1474,9 @@ async function submitReply(event, parentCommentId) {
         return;
     }
     
-    // 从comment元素中获取storyId（通过API重新获取）
-    const commentElement = document.getElementById('comment-' + parentCommentId);
-    if (!commentElement) {
-        showToast('错误：评论不存在', 'error');
-        return;
-    }
-    
+    // （注意）不再依赖页面中存在 `comment-<id>` 元素，因为对子回复的回复
+    // 并不会为每条子回复创建顶级 `comment-<id>` 节点。只要能拿到当前故事ID
+    // 就可以向后端提交 parent_id。
     // 从当前打开的故事详情中获取storyId
     const storyId = window.currentStoryId;
     if (!storyId) {
