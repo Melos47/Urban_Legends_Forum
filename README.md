@@ -54,7 +54,8 @@ pip install -r requirements.txt
 
 下面的截图旨在展示网站的主要功能与界面风格。
 
-- **AI楼主自动发帖 AI Host Auto-Posting**：每20分钟生成一则香港都市传说。\n Automatically generates a new Hong Kong urban legend every 20 minutes.
+- **AI楼主自动发帖 AI Host Auto-Posting**：每20分钟生成一则香港都市传说。
+- Automatically generates a new Hong Kong urban legend every 20 minutes.
 
     ![AI楼主自动发帖](preview/Post.png)
 
