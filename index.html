@@ -685,7 +685,7 @@
         
         .story-title {
             font-weight: bold;
-            color: #f0fccc;
+            color: #f0ffc2;
             font-size: 12px;
             margin-bottom: 4px;
             text-rendering: optimizeSpeed;
@@ -697,7 +697,7 @@
         
         .story-meta {
             font-size: 10px;
-            color: #e0ecb0;
+            color: #e6e6c8; /* slightly brighter meta color */
             display: flex;
             gap: 12px;
             margin-bottom: 4px;
@@ -721,7 +721,7 @@
         
         .story-footer {
             font-size: 9px;
-            color: #6a6a4a;
+            color: #e6e6c8; /* brighten footer/footnote */
             display: flex;
             justify-content: space-between;
             border-top: 1px dotted #5a5a3a;
@@ -1270,6 +1270,31 @@
         /* 个人中心模态框 */
         #user-center-modal {
             z-index: 1000;
+        }
+
+        /* 通知中心样式：默认靠右并位于菜单下方；在窄屏时自适应宽度并居中 */
+        #notification-center {
+            display: none;
+            position: fixed;
+            top: 36px; /* 在固定头部下方显示 (头部高度约28px + 间距) */
+            right: 20px;
+            width: 360px;
+            max-height: 60vh;
+            overflow: auto;
+            background: #111;
+            border: 2px solid #b7bb98;
+            padding: 12px;
+            z-index: 1500;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+        }
+
+        @media (max-width: 480px) {
+            #notification-center {
+                left: 20px;
+                right: 20px;
+                width: auto;
+                top: 36px;
+            }
         }
         
         .footer {
@@ -2274,7 +2299,7 @@
         <!-- 消息通知 -->
         <div class="menu-item" id="menu-notifications" style="cursor: pointer; position: relative;">
             <img src="static/logo9.png" alt="logo" style="width:24px;vertical-align:middle;margin-right:6px;"> 通知
-            <span id="notification-badge" style="position: absolute; top: -5px; right: -8px; background: #8b0000; color: white; border-radius: 50%; width: 16px; height: 16px; display: none; font-size: 9px; line-height: 16px; text-align: center;">0</span>
+            <span id="notification-badge" style="position: absolute; top: -5px; right: -8px; background: #8b0000; color: rgb(247, 252, 205); border-radius: 50%; width: 16px; height: 16px; display: none; font-size: 9px; line-height: 16px; text-align: center;">0</span>
         </div>
     </div>
 </div>
@@ -2332,11 +2357,11 @@
     <!-- 右侧主内容区 -->
     <div class="main-content">
         <!-- 通知中心模态（由 JS 控制显示/隐藏） -->
-            <div id="notification-center" style="display:none; position:fixed; width:360px; max-height:60vh; overflow:auto; background: #111; border:2px solid #b7bb98; padding:12px; z-index:1500; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+            <div id="notification-center">
             <!-- 关闭按钮已移除：点击中心外部将关闭通知中心 -->
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; overflow:visible; z-index:2600;">
-                <div style="font-weight:bold; color:#fff;">通知中心</div>
+                <div style="font-weight:bold; color:#c7cb7b;">通知中心</div>
                 <div style="display:flex; gap:6px; align-items:center;">
                     <!-- custom dropdown to ensure menu appears under the button -->
                     <div id="notification-filter" style="position:relative;">

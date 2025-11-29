@@ -832,37 +832,55 @@ async function showNotificationCenter() {
 
         const center = document.getElementById('notification-center');
         if (center) {
-            // position the center under the menubar notifications icon
-            try {
-                const icon = document.getElementById('menu-notifications');
-                if (icon) {
-                    // make visible off-screen to measure width if needed
+            // helper to position the center under the menubar notifications icon
+            const positionCenter = () => {
+                try {
+                    const icon = document.getElementById('menu-notifications');
+                    // ensure visible to measure; keep it hidden while measuring to avoid flicker
                     center.style.display = 'block';
                     center.style.visibility = 'hidden';
 
-                    // measure center width
-                    const cw = center.offsetWidth || 360;
-                    const rect = icon.getBoundingClientRect();
-                    // prefer aligning center horizontally with the icon center
-                    let left = Math.round(rect.left + rect.width / 2 - cw / 2);
-                    const padding = 8;
-                    // clamp to viewport
-                    if (left < padding) left = padding;
-                    if (left + cw + padding > window.innerWidth) left = Math.max(padding, window.innerWidth - cw - padding);
+                    if (icon) {
+                        // measure center width
+                        const cw = center.offsetWidth || 360;
+                        const rect = icon.getBoundingClientRect();
+                        // align center horizontally with the icon center
+                        let left = Math.round(rect.left + rect.width / 2 - cw / 2);
+                        const padding = 8;
+                        // clamp to viewport
+                        if (left < padding) left = padding;
+                        if (left + cw + padding > window.innerWidth) left = Math.max(padding, window.innerWidth - cw - padding);
 
-                    const top = Math.round(rect.bottom + 6);
-                    center.style.left = left + 'px';
-                    center.style.top = top + 'px';
+                        const top = Math.round(rect.bottom + 6);
+                        center.style.left = left + 'px';
+                        center.style.top = top + 'px';
+                        // clear right so left positioning takes effect
+                        center.style.right = '';
+                    } else {
+                        // fallback: position near top-right using CSS defaults
+                        center.style.left = '';
+                        center.style.right = '20px';
+                        center.style.top = '36px';
+                    }
+
                     center.style.visibility = 'visible';
-                } else {
-                    // fallback: show at top-right
+                } catch (err) {
+                    console.error('定位通知中心失败:', err);
                     center.style.display = 'block';
-                    center.style.left = '';
-                    center.style.top = '70px';
                 }
-            } catch (err) {
-                console.error('定位通知中心失败:', err);
-                center.style.display = 'block';
+            };
+
+            // initial positioning
+            positionCenter();
+
+            // attach a resize listener so it repositions when window size changes
+            if (!window._notifResizeHandler) {
+                window._notifResizeHandler = () => {
+                    const c = document.getElementById('notification-center');
+                    if (!c || c.style.display !== 'block') return;
+                    positionCenter();
+                };
+                window.addEventListener('resize', window._notifResizeHandler);
             }
         }
 
@@ -874,7 +892,12 @@ async function showNotificationCenter() {
                 if (!centerEl || centerEl.style.display !== 'block') return;
                 // do nothing when clicking inside center or on the notifications menu icon
                 if (centerEl.contains(e.target) || (icon && icon.contains(e.target))) return;
+                // hide and cleanup resize handler
                 centerEl.style.display = 'none';
+                if (window._notifResizeHandler) {
+                    window.removeEventListener('resize', window._notifResizeHandler);
+                    window._notifResizeHandler = null;
+                }
             };
             window.addEventListener('click', window._notifCenterOutsideHandler);
             window._notifCenterOutsideHandlerAdded = true;
@@ -984,8 +1007,9 @@ function renderNotificationListPage() {
 
         const contentHtml = '<div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">' +
             '<div style="flex:1;">' +
-            '<div style="font-size:12px; color:#fff;">' + escapeHtml(n.content) + '</div>' +
-            '<div style="font-size:10px; color:#ccc; margin-top:6px;">' + formatDate(n.created_at) + '</div>' +
+            // 主体文字使用主题黄绿色以匹配整体风格
+            '<div style="font-size:12px; color:#bbbdad;">' + escapeHtml(n.content) + '</div>' +
+            '<div style="font-size:10px; color:#7a8268; margin-top:6px;">' + formatDate(n.created_at) + '</div>' +
             '</div>' +
             '<div style="font-size:9px; background:' + categoryColor + '20; color:' + categoryColor + '; padding:2px 6px; border-radius:3px; white-space:nowrap;">' + categoryLabel + '</div>' +
             '</div>';
