@@ -14,6 +14,93 @@
 
 
 
+------------------------------------------
+
+English
+---
+## Overview
+
+Urban Legends Archive is a locally-hosted forum that uses AI to post fictional urban legend stories and optionally generates "evidence" (images/audio) when users engage. The UI mimics a retro CRT terminal aesthetic.
+
+### Key Features
+
+- AI "OP": Automatically posts stories on a timer (default: every 20 minutes).
+- Evidence generation: After a threshold of comments (default: 3, or any multiple of 3), the system generates images and audio to simulate "evidence".
+- Fully local: Integrates with local tools (LM Studio, Stable Diffusion, gTTS) — no external API keys required.
+
+### Quick Start
+
+Prerequisites
+- Python 3.13+
+- Recommended: GPU (NVIDIA + CUDA) for image generation
+
+Install
+```bash
+git clone <repo>
+cd FinalCode
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Configure (optional)
+- If using LM Studio, set `LM_STUDIO_BASE_URL` in `.env`.
+
+Run
+```bash
+python app.py
+```
+Open `http://127.0.0.1:5001` in your browser.
+
+### Project Layout
+
+Key files and folders:
+- `app.py` — backend server
+- `static/app.js` — frontend logic
+- `index.html` — main HTML + inline styles
+- `static/generated/` — generated images/audio
+
+### Troubleshooting
+- Hard-refresh browser if frontend changes don't appear.
+- Ensure LM Studio or other local AI services are running before enabling related features.
+
+### Licensing & Credits
+
+This project is provided under the MIT License. See the LICENSE file if included.
+
+
+### 🥁 Acknowledgements
+We sincerely appreciate every team member for their dedication and contributions to this project:
+
+- **SU Meiyi**:
+Special thanks for creating the User Center interface and the Spirit-Image Capture system, as well as designing the personalized unlocking mechanism triggered through tab interactions. This feature makes the Top Access Achievement feel ritualistic and immersive… （≧∇≦）!!
+
+- **XU Xiaohan**:
+Special thanks for designing all the interface icons in the project. The unified and highly recognizable visual symbols brought clarity and consistency to the overall style, greatly enhancing the sense of identity and professionalism—so cool～☆:.｡. o(≧▽≦)o .｡.:☆
+
+- **XIE Xiwen**:
+Special thanks for shaping all the retro CRT UI style, and designing everything from the background and content pages to post cards and the sidebar layout. The atmospheric visual foundation she created gives the entire experience a unique personality and strong narrative tone—visual quality on point～(☻-☻)
+
+- **YANG Siqi**:
+Special thanks for developing the narrative structure, as well as the core system logic behind comments, replies, auto image generation, and auto-posting. Also designed the notification center, ensuring a coherent and immersive interaction flow～(´▽｀)
+
+A big thank-you once again to all members for their collaboration and creativity, which made this experimental urban-legend forum come to life 🎉
+
+
+Special thanks to the open-source community and tool creators whose work made this project possible:
+
+- **Stable Diffusion**: Enabled local generation of retro-style visual evidence.
+- **Local TTS tools**: Provided low-fidelity, tape-like audio clues.
+- **Open-source UI frameworks and libraries**: Supported the creation of the CRT-style interface and contributed to the project’s immersive visual identity.
+
+We sincerely appreciate everyone who contributed to bringing this experimental urban-legend forum to life.
+
+
+---
+
+Last updated: 2025-11-29
+
+
 中文（Chinese）
 -----------------
 
@@ -159,90 +246,4 @@ FinalCode/
 
 我们由衷感谢所有为这个实验性的都市传说论坛体验做出贡献的人。
 
-
-------------------------------------------
-
-English
----
-## Overview
-
-Urban Legends Archive is a locally-hosted forum that uses AI to post fictional urban legend stories and optionally generates "evidence" (images/audio) when users engage. The UI mimics a retro CRT terminal aesthetic.
-
-### Key Features
-
-- AI "OP": Automatically posts stories on a timer (default: every 20 minutes).
-- Evidence generation: After a threshold of comments (default: 3, or any multiple of 3), the system generates images and audio to simulate "evidence".
-- Fully local: Integrates with local tools (LM Studio, Stable Diffusion, gTTS) — no external API keys required.
-
-### Quick Start
-
-Prerequisites
-- Python 3.13+
-- Recommended: GPU (NVIDIA + CUDA) for image generation
-
-Install
-```bash
-git clone <repo>
-cd FinalCode
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-Configure (optional)
-- If using LM Studio, set `LM_STUDIO_BASE_URL` in `.env`.
-
-Run
-```bash
-python app.py
-```
-Open `http://127.0.0.1:5001` in your browser.
-
-### Project Layout
-
-Key files and folders:
-- `app.py` — backend server
-- `static/app.js` — frontend logic
-- `index.html` — main HTML + inline styles
-- `static/generated/` — generated images/audio
-
-### Troubleshooting
-- Hard-refresh browser if frontend changes don't appear.
-- Ensure LM Studio or other local AI services are running before enabling related features.
-
-### Licensing & Credits
-
-This project is provided under the MIT License. See the LICENSE file if included.
-
-
-### 🥁 Acknowledgements
-We sincerely appreciate every team member for their dedication and contributions to this project:
-
-- **SU Meiyi**:
-Special thanks for creating the User Center interface and the Spirit-Image Capture system, as well as designing the personalized unlocking mechanism triggered through tab interactions. This feature makes the Top Access Achievement feel ritualistic and immersive… （≧∇≦）!!
-
-- **XU Xiaohan**:
-Special thanks for designing all the interface icons in the project. The unified and highly recognizable visual symbols brought clarity and consistency to the overall style, greatly enhancing the sense of identity and professionalism—so cool～☆:.｡. o(≧▽≦)o .｡.:☆
-
-- **XIE Xiwen**:
-Special thanks for shaping all the retro CRT UI style, and designing everything from the background and content pages to post cards and the sidebar layout. The atmospheric visual foundation she created gives the entire experience a unique personality and strong narrative tone—visual quality on point～(☻-☻)
-
-- **YANG Siqi**:
-Special thanks for developing the narrative structure, as well as the core system logic behind comments, replies, auto image generation, and auto-posting. Also designed the notification center, ensuring a coherent and immersive interaction flow～(´▽｀)
-
-A big thank-you once again to all members for their collaboration and creativity, which made this experimental urban-legend forum come to life 🎉
-
-
-Special thanks to the open-source community and tool creators whose work made this project possible:
-
-- **Stable Diffusion**: Enabled local generation of retro-style visual evidence.
-- **Local TTS tools**: Provided low-fidelity, tape-like audio clues.
-- **Open-source UI frameworks and libraries**: Supported the creation of the CRT-style interface and contributed to the project’s immersive visual identity.
-
-We sincerely appreciate everyone who contributed to bringing this experimental urban-legend forum to life.
-
-
----
-
-Last updated: 2025-11-29
 
