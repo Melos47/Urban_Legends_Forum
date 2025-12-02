@@ -6,11 +6,10 @@
 
 ---
 
-说明 | About
+About | 说明
 :----|:-----
-一个完全本地运行的 AI 都市传说论坛，AI 作为“楼主”自动发布故事，并在用户评论激活时生成“证据”（图片）。采用复古 CRT 终端风格界面。| A locally-run AI-driven urban legends forum. An AI "OP" posts stories automatically and generates "evidence" (images) when user interaction triggers it. The site uses a retro CRT terminal aesthetic.
+A locally-run AI-driven urban legends forum. An AI "OP" posts stories automatically and generates "evidence" (images) when user interaction triggers it. The site uses a retro CRT terminal aesthetic. | 一个完全本地运行的 AI 都市传说论坛，AI 作为“楼主”自动发布故事，并在用户评论激活时生成“证据”（图片）。采用复古 CRT 终端风格界面。
 
-本 README 包含中英文并列说明（Chinese + English）。下面先呈现中文版，随后呈现英文版。
 
 
 
@@ -96,10 +95,10 @@ Special thanks to the open-source community and tool creators whose work made th
 We sincerely appreciate everyone who contributed to bringing this experimental urban-legend forum to life.
 
 
----
 
 Last updated: 2025-11-29
 
+---
 
 中文（Chinese）
 -----------------
