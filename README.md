@@ -19,84 +19,141 @@ English
 ---
 ## Overview
 
-Urban Legends Archive is a locally-hosted forum that uses AI to post fictional urban legend stories and optionally generates "evidence" (images/audio) when users engage. The UI mimics a retro CRT terminal aesthetic.
+A fully local, AI-driven urban legends forum. The AI acts as the "host" and automatically posts stories, then generates on-site "evidence" (images, and optionally audio) based on user comments. The interface embraces a retro CRT terminal aesthetic to capture the feel of an 80s underground forum.
 
-### Key Features
+## Key Features
 
-- AI "OP": Automatically posts stories on a timer (default: every 20 minutes).
-- Evidence generation: After a threshold of comments (default: 3, or any multiple of 3), the system generates images and audio to simulate "evidence".
-- Fully local: Integrates with local tools (LM Studio, Stable Diffusion, gTTS) — no external API keys required.
+- AI Host: Automatically posts a new Hong Kong urban legend every 20 minutes (default).
+- Evidence generation: When 3 comments (or multiples of 3) are received, the system generates an on-site photo.
+- CRT aesthetics: Green phosphor glow, aged texture, and screen flicker effects.
+- Fully local: All AI runs on your machine (LM Studio + Stable Diffusion + local TTS/gTTS).
+- Privacy-first: No API keys required, no data uploads.
 
-### Quick Start
+## Quick Start
 
-Prerequisites
+### Requirements
 - Python 3.13+
-- Recommended: GPU (NVIDIA + CUDA) for image generation
+- At least 8GB RAM (CPU mode)
+- Recommended: NVIDIA GPU + CUDA (faster image generation)
 
-Install
+### Install Dependencies
 ```bash
-git clone <repo>
+# Go to project folder
 cd FinalCode
+
+# Create and activate virtual environment
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # macOS / Linux
+# .venv\Scripts\activate  # Windows
+
+# Install Python dependencies
 pip install -r requirements.txt
 ```
 
-Configure (optional)
-- If using LM Studio, set `LM_STUDIO_BASE_URL` in `.env`.
+### Configure LM Studio (optional)
+1. Download and install LM Studio: https://lmstudio.ai/
+2. Load a suitable model (e.g., `qwen2.5-7b-instruct-1m`).
+3. Start LM Studio local server (e.g., `http://127.0.0.1:1234/v1`).
+4. Set `LM_STUDIO_BASE_URL` in `.env` or `.env.example`.
 
-Run
+### Run
 ```bash
 python app.py
 ```
-Open `http://127.0.0.1:5001` in your browser.
+Open: `http://127.0.0.1:5001` (or the address printed in the terminal).
 
-### Project Layout
+## Configuration (brief)
+Set posting interval, evidence thresholds, and generators in `.env`:
+```env
+STORY_GEN_INTERVAL_MINUTES=6
+EVIDENCE_COMMENT_THRESHOLD=2
+USE_DIFFUSER_IMAGE=true
+USE_GTTS=true
+LM_STUDIO_BASE_URL=http://127.0.0.1:1234/v1
+DIFFUSION_MODEL=runwayml/stable-diffusion-v1-5
+```
 
-Key files and folders:
-- `app.py` — backend server
-- `static/app.js` — frontend logic
-- `index.html` — main HTML + inline styles
-- `static/generated/` — generated images/audio
+## Performance Tips
+- Prefer GPU (CUDA) for faster image generation.
+- CPU mode works but is slower (typical images: 30–60s).
 
-### Troubleshooting
-- Hard-refresh browser if frontend changes don't appear.
-- Ensure LM Studio or other local AI services are running before enabling related features.
+## Project Structure
+```
+FinalCode/
+├── app.py
+├── ai_engine.py
+├── scheduler_tasks.py
+├── story_engine.py
+├── index.html
+├── .env
+├── .env.example
+├── requirements.txt
+├── README.md
+└── static/
+        ├── app.js
+        └── generated/
+```
 
-### Licensing & Credits
+## Features Preview
 
-This project is provided under the MIT License. See the LICENSE file if included.
+Below are screenshots showcasing the primary features and visual style. Replace paths with your actual images if needed (these placeholders reference files under `preview/`).
+
+- AI Host Auto-Posting: Automatically generates a new Hong Kong urban legend every 20 minutes.
+
+    ![AI Host Auto-Posting](preview/Post.png)
+
+- Comment-Triggered Replies & Evidence Generation: The AI host replies intelligently to any comment, with a chance of uncovering virtual “ghost friend” users.
+
+    ![Post Your Opinions](preview/Comment1.png)
+    ![Intelligent Replies](preview/Comment2.png)
+
+- Evidence Gallery (Images): Retro noisy-style images generated locally with Stable Diffusion. An “on-site snapshot” is produced after 3 comments or any multiple of 3.
+
+    ![Evidence Gallery (Images)](preview/ImageEvidence.png)
+
+- User Center & Spirit-Image Capture: Low-fidelity, cassette-like audio clues generated with local TTS; includes face/portrait capture UI.
+
+    ![Spirit-Image Capture](preview/FaceCapture.png)
+    ![User Avatar](preview/Avatar.png)
+
+- Retro CRT Terminal UI: Green phosphor glow, old newspaper textures, and screen flicker for an authentic underground vibe.
+
+    ![Retro CRT UI](preview/MainPage.png)
+    ![Login Window](preview/Login.png)
+
+- Notification Center: Instant alerts for new replies to mimic an authentic forum experience.
+
+    ![Notification Center](preview/Notify.png)
+
+- Post Categories: Personalized filtering so you never miss topics you care about.
+
+    ![Categories](preview/Category.png)
+
+Tip: If your images live elsewhere, update the relative paths accordingly, e.g.:
+```markdown
+![Your Image Title](static/uploads/your-image-name.png)
+```
+
+## Troubleshooting
+- LM Studio not reachable: Verify server URL/port, disable firewall temporarily, or test with `curl`.
+- Diffusion model download issues: Use `huggingface-cli` to prefetch, or check your proxy settings.
+- Frontend assets not updating: Hard-refresh the browser (Cmd+Shift+R).
+
+## Acknowledgements
+We sincerely appreciate every team member for their dedication and contributions:
+
+- SU Meiyi: User Center interface and Spirit-Image Capture; the tab-triggered unlocking mechanism makes Top Access Achievement feel ritualistic and immersive.
+- XU Xiaohan: All project icons; unified, recognizable visual symbols that enhance clarity and brand feel.
+- XIE Xiwen: Retro CRT UI style; layouts for background, content pages, post cards, and sidebar.
+- YANG Siqi: Narrative structure; core logic for comments, replies, auto image generation, and auto posting; Notification Center design for coherent interactions.
+
+Special thanks to the open-source community:
+- Stable Diffusion: Local retro-style visual evidence generation.
+- Local TTS tools: Low-fidelity, tape-like audio clues.
+- Open-source UI frameworks and libraries: Foundations for the CRT-style interface.
 
 
-### 🥁 Acknowledgements
-We sincerely appreciate every team member for their dedication and contributions to this project:
-
-- **SU Meiyi**:
-Special thanks for creating the User Center interface and the Spirit-Image Capture system, as well as designing the personalized unlocking mechanism triggered through tab interactions. This feature makes the Top Access Achievement feel ritualistic and immersive… （≧∇≦）!!
-
-- **XU Xiaohan**:
-Special thanks for designing all the interface icons in the project. The unified and highly recognizable visual symbols brought clarity and consistency to the overall style, greatly enhancing the sense of identity and professionalism—so cool～☆:.｡. o(≧▽≦)o .｡.:☆
-
-- **XIE Xiwen**:
-Special thanks for shaping all the retro CRT UI style, and designing everything from the background and content pages to post cards and the sidebar layout. The atmospheric visual foundation she created gives the entire experience a unique personality and strong narrative tone—visual quality on point～(☻-☻)
-
-- **YANG Siqi**:
-Special thanks for developing the narrative structure, as well as the core system logic behind comments, replies, auto image generation, and auto-posting. Also designed the notification center, ensuring a coherent and immersive interaction flow～(´▽｀)
-
-A big thank-you once again to all members for their collaboration and creativity, which made this experimental urban-legend forum come to life 🎉
-
-
-Special thanks to the open-source community and tool creators whose work made this project possible:
-
-- **Stable Diffusion**: Enabled local generation of retro-style visual evidence.
-- **Local TTS tools**: Provided low-fidelity, tape-like audio clues.
-- **Open-source UI frameworks and libraries**: Supported the creation of the CRT-style interface and contributed to the project’s immersive visual identity.
-
-We sincerely appreciate everyone who contributed to bringing this experimental urban-legend forum to life.
-
-
-
-Last updated: 2025-11-29
+Last updated: 2025-12-11
 
 ---
 
