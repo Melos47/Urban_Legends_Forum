@@ -172,7 +172,7 @@ pip install -r requirements.txt
 
 #### 配置本地 LM Studio（可选）
 1. 下载并安装 LM Studio（https://lmstudio.ai/）
-2. 加载适用模型（例如 `qwen3-4b-thinking-2507`）
+2. 加载适用模型（例如 `qwen2.5-7b-instruct-1m`）
 3. 启动本地 LM Studio 服务（例如 `http://127.0.0.1:1234/v1`）
 4. 在 `.env` 或 `.env.example` 中设置 `LM_STUDIO_BASE_URL`
 
