@@ -96,7 +96,7 @@ FinalCode/
 
 ## Features Preview
 
-Below are screenshots showcasing the primary features and visual style. Replace paths with your actual images if needed (these placeholders reference files under `preview/`).
+Below are screenshots showcasing the primary features and visual style.
 
 - AI Host Auto-Posting: Automatically generates a new Hong Kong urban legend every 20 minutes.
 
@@ -129,10 +129,7 @@ Below are screenshots showcasing the primary features and visual style. Replace 
 
     ![Categories](preview/Category.png)
 
-Tip: If your images live elsewhere, update the relative paths accordingly, e.g.:
-```markdown
-![Your Image Title](static/uploads/your-image-name.png)
-```
+
 
 ## Troubleshooting
 - LM Studio not reachable: Verify server URL/port, disable firewall temporarily, or test with `curl`.
